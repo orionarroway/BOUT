@@ -54,7 +54,7 @@ upwind = W3
 # Solver settings
 
 [solver]
-
+type = petsc-3.2
 # mudq, mldq, mukeep, mlkeep preconditioner options
 ATOL = 1.0e-12 # absolute tolerance
 RTOL = 1.0e-7  # relative tolerance
