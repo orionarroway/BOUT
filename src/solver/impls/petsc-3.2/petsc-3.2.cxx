@@ -325,7 +325,7 @@ int Petsc32Solver::init(rhsfunc f, bool restarting, int NOUT, BoutReal TIMESTEP)
 
       // Only for advect1d, need to figure this out
       nx = 5;
-      ny = 128;
+      ny = 32;
 
       dims[0] = nx;
       dims[1] = ny;
