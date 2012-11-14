@@ -18,7 +18,11 @@ PetscLib::PetscLib() {
     
     output << "Initialising PETSc\n";
     PetscInitialize(&argc,&argv,PETSC_NULL,help);
+    
+
     PetscLogEventRegister("Total BOUT++",0,&USER_EVENT);
+
+
     PetscLogEventBegin(USER_EVENT,0,0,0,0);
   }
   count++;

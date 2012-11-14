@@ -50,6 +50,7 @@ using std::string;
 #define SOLVERPETSC       "petsc"
 #define SOLVERPETSC31     "petsc-3.1"
 #define SOLVERPETSC32     "petsc-3.2"
+#define SOLVERPETSC33     "petsc-3.3"
 #define SOLVERKARNIADAKIS "karniadakis"
 #define SOLVERRK4         "rk4"
 #define SOLVEREULER       "euler"
@@ -67,6 +68,9 @@ typedef int (*Jacobian)(BoutReal t);
 
 /// Solution monitor, called each timestep
 typedef int (*MonitorFunc)(Solver *solver, BoutReal simtime, int iter, int NOUT);
+
+/// Solution monitor, called each timestep, overloaded for petsc3.3
+//typedef int (*MonitorFunc)(BoutReal simtime, int iter, int NOUT);
 
 class Solver {
  public:
@@ -107,6 +111,7 @@ class Solver {
   ///       Needed because of how the PETSc TS code works
   virtual int init(rhsfunc f, bool restarting, int nout, BoutReal tstep);
   
+  //virtual int init(rhsfunc f,  int argc,char **argv,bool restarting, int nout, BoutReal tstep); //nope
   /// Run the solver, calling MonitorFunc nout times, at intervals of tstep
   virtual int run(MonitorFunc f) = 0;
   

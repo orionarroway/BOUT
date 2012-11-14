@@ -26,7 +26,7 @@
 #include "petsc-3.3.hxx"
 
 #ifdef BOUT_HAS_PETSC_3_3
-
+#include <boutcomm.hxx>
 #include <private/tsimpl.h>
 
 #include <globals.hxx>
@@ -106,7 +106,7 @@ int Petsc33Solver::init(rhsfunc f, int argc, char **argv, bool restarting, int N
   PetscMPIInt     rank;
 
 #ifdef CHECK
-  int msg_point = msg_stack.push("Initialising PETSc solver");
+  int msg_point = msg_stack.push("Initialising PETSc 3.3 solver");
 #endif
 
   PetscFunctionBegin;
@@ -118,7 +118,7 @@ int Petsc33Solver::init(rhsfunc f, int argc, char **argv, bool restarting, int N
   Solver::init(f, argc, argv, restarting, NOUT, TIMESTEP);
 
   ierr = PetscLogEventBegin(init_event,0,0,0,0);CHKERRQ(ierr);
-  output.write("Initialising PETSc solver\n");
+  output.write("Initialising PETSc 3.3 solver\n");
   ierr = MPI_Comm_rank(comm, &rank);CHKERRQ(ierr);
 
   // Save NOUT and TIMESTEP for use later
@@ -310,12 +310,12 @@ int Petsc33Solver::init(rhsfunc f, int argc, char **argv, bool restarting, int N
   ierr = TSGetType(ts,&tstype);CHKERRQ(ierr);
   output.write("\tTS type %s, PC type %s\n",tstype,pctype);
 
-  ierr = PetscTypeCompare((PetscObject)pc,PCNONE,&pcnone);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)pc,PCNONE,&pcnone);CHKERRQ(ierr);
   if (pcnone) {
     ierr = PetscLogEventEnd(init_event,0,0,0,0);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
-  ierr = PetscTypeCompare((PetscObject)pc,PCSHELL,&pcnone);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)pc,PCSHELL,&pcnone);CHKERRQ(ierr);
   if (pcnone) {
     ierr = PetscLogEventEnd(init_event,0,0,0,0);CHKERRQ(ierr);
     PetscFunctionReturn(0);
@@ -432,7 +432,7 @@ int Petsc33Solver::init(rhsfunc f, int argc, char **argv, bool restarting, int N
 
       printf(" dof %d,dim %d: %d %d %d\n",dof,dim,dims[0],dims[1],dims[2]);
       for(k=0;k<nz;k++) {
-        cout << "----- " << k << " -----" << endl;
+	std::cout << "----- " << k << " -----" << endl;
         for(j=mesh->ystart; j <= mesh->yend; j++) {
           // cout << "j " << mesh->YGLOBAL(j) << ": ";
           gj = mesh->YGLOBAL(j);
@@ -891,7 +891,7 @@ PetscErrorCode PetscMonitor(TS ts,PetscInt step,PetscReal t,Vec X,void *ctx) {
     s->load_vars((BoutReal *)x);
     ierr = VecRestoreArrayRead(interpolatedX,&x);CHKERRQ(ierr);
 
-    if (s->monitor(simtime,i++,s->nout)) {
+    if (s->monitor(s,simtime,i++,s->nout)) {
       s->restart.write("%s/BOUT.final.%s", s->restartdir.c_str(), s->restartext.c_str());
 
       output.write("Monitor signalled to quit. Returning\n");
