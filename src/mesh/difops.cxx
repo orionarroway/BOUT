@@ -884,7 +884,7 @@ const Field3D b0xGrad_dot_Grad(const Field3D &p, const Field2D &A, CELL_LOC outl
 #ifdef CHECK
   int msg_pos = msg_stack.push("b0xGrad_dot_Grad( Field3D , Field2D )");
 #endif
-
+  //output<< "im there" <<endl;
   // Calculate phi derivatives
   #pragma omp parallel sections
   {
@@ -897,6 +897,7 @@ const Field3D b0xGrad_dot_Grad(const Field3D &p, const Field2D &A, CELL_LOC outl
     #pragma omp section
     dpdz = DDZ(p, outloc);
   }
+  //output << "done with dp" <<endl;
 
   // Calculate advection velocity
   #pragma omp parallel sections
@@ -907,7 +908,7 @@ const Field3D b0xGrad_dot_Grad(const Field3D &p, const Field2D &A, CELL_LOC outl
     #pragma omp section
     vy = mesh->g_23*dpdx - mesh->g_12*dpdz;
   }
-
+  //output << "done with advect" <<endl;
   // Upwind A using these velocities
 
   Field3D r2;
@@ -920,6 +921,8 @@ const Field3D b0xGrad_dot_Grad(const Field3D &p, const Field2D &A, CELL_LOC outl
     r2 = VDDY(vy, A);
   }
 
+  //output << "done with upwind" <<endl;
+  
   result = (result + r2) / (mesh->J*sqrt(mesh->g_22));
   
 #ifdef TRACK
@@ -928,7 +931,16 @@ const Field3D b0xGrad_dot_Grad(const Field3D &p, const Field2D &A, CELL_LOC outl
 #ifdef CHECK
   msg_stack.pop(msg_pos);
 #endif
+  //output << "done with result" <<endl;
+  // for(int y=0;y<5;y++) {
+  //   for(int x=0;x<5;x++){
+  //     output << "["<<p[x][y][0] << ", ";
+  //     output << dpdz[x][y][0] << "], ";
+  //   }
+  //   output << endl;
+  // }
   return result;
+  //return 1.0;
 }
 
 const Field3D b0xGrad_dot_Grad(const Field3D &phi, const Field3D &A, CELL_LOC outloc)

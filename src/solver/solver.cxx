@@ -940,8 +940,8 @@ int Solver::run_func(BoutReal t, rhsfunc f) {
 
 #ifdef CHECK
   msg_stack.push("Solver checking time derivatives");
-  for(vector< VarStr<Field3D> >::iterator it = f3d.begin(); it != f3d.end(); it++)
-    it->F_var->checkData();
+  //for(vector< VarStr<Field3D> >::iterator it = f3d.begin(); it != f3d.end(); it++)
+  // it->F_var->checkData();
   msg_stack.pop();
 #endif
   

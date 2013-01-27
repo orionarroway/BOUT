@@ -325,7 +325,7 @@ Field3D & Field3D::operator=(const FieldPerp &rhs) {
   /// Test rhs values
   for(int jx=mesh->xstart;jx<=mesh->xend;jx++)
     for(int jz=0;jz<mesh->ngz-1;jz++)
-      if(!finite(d[jx][jz])) {
+      if(!finite(d[jx][jz]) and (d[jx][jz] != 0)) {
 	throw BoutException("Field3D: Assignment from non-finite FieldPerp data at (%d,%d,%d)\n", jx,jy,jz);
       }
 #endif
@@ -1905,6 +1905,7 @@ bool Field3D::checkData(bool vital) const
   if(block ==  NULL)
     throw BoutException("Field3D: Operation on empty data\n");
 
+  //output <<"data check" <<endl;
   if( vital || ( CHECK > 2 ) ) { 
     // Do full checks
     // Normally this is done just for some operations (equalities)
@@ -1915,8 +1916,10 @@ bool Field3D::checkData(bool vital) const
     for(jx=mesh->xstart;jx<=mesh->xend;jx++)
       for(jy=mesh->ystart;jy<=mesh->yend;jy++)
 	for(jz=0;jz<mesh->ngz-1;jz++)
-	  if(!finite(block->data[jx][jy][jz]))
+	  if(!finite(block->data[jx][jy][jz]) and (block->data[jx][jy][jz] != 0)){
+	    output << "data " << block->data[jx][jy][jz] << endl;
 	    throw BoutException("Field3D: Operation on non-finite data at [%d][%d][%d]\n", jx, jy, jz);
+	  }
   }
 
   return false;
@@ -2811,4 +2814,60 @@ bool finite(const Field3D &f)
 #endif
 
   return true;
+}
+
+
+BoutReal Field3D::patchmax(bool allpe) const
+{
+#ifdef CHECK
+  if(block == NULL)
+    throw BoutException("Field3D: patchmax() method on empty data");
+  if(allpe) {
+    msg_stack.push("Field3D::patchMax() over all PEs");
+  }else
+    msg_stack.push("Field3D::patchMax()");
+#endif
+  
+  BoutReal result;// = block->data[0][0][0];
+  
+  #pragma omp parallel 
+  {
+    BoutReal r = 0;
+    BoutReal rb = 0;
+    #pragma omp for nowait
+    for(int j=0;j<mesh->ngx*mesh->ngy*mesh->ngz;j++){
+      if (finite(block->data[0][0][j]))
+	rb = block->data[0][0][j];
+      else
+	rb =0;
+      
+      
+
+      if(rb > r)
+        r = rb;
+    }
+    
+    #pragma omp critical
+    {
+      //output.write("r: %g\n", r);
+      if(r > result){
+	//output.write("r: %g\n", r);
+	result = r;
+      }
+    }
+    
+  }
+  
+  if(allpe) {
+    // MPI reduce
+    BoutReal localresult = result;
+    MPI_Allreduce(&localresult, &result, 1, MPI_DOUBLE, MPI_MAX, BoutComm::get());
+  }
+  
+#ifdef CHECK
+  msg_stack.pop();
+#endif
+  
+  return result;
+  //return 0;
 }

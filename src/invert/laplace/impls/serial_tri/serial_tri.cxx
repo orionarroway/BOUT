@@ -441,8 +441,8 @@ const FieldPerp LaplaceSerialTri::solve(const FieldPerp &b, const FieldPerp &x0)
     x[ix][mesh->ngz-1] = x[ix][0]; // enforce periodicity
     
     for(int kz=0;kz<mesh->ngz;kz++)
-      if(!finite(x[ix][kz]))
-        throw BoutException("Non-finite at %d, %d, %d", ix, jy, kz);
+      if(!finite(x[ix][kz]) and (x[ix][kz] != 0))
+	throw BoutException("Non-finite at %d, %d, %d", ix, jy, kz);
   }
 
   return x;

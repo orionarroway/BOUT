@@ -283,7 +283,7 @@ int CvodeSolver::run(MonitorFunc monitor) {
   for(int i=0;i<NOUT;i++) {
 
     /// Run the solver for one output timestep
-    simtime = run(simtime + TIMESTEP);
+    simtime = run(simtime + TIMESTEP); //actually call the solver here
     iteration++;
 
     /// Check if the run succeeded

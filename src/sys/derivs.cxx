@@ -2098,7 +2098,13 @@ const Field3D VDDY(const Field &v, const Field &f, CELL_LOC outloc, DIFF_METHOD 
   // Mark boundaries as invalid
   result.bndry_xin = result.bndry_xout = result.bndry_yup = result.bndry_ydown = false;
 #endif
-
+  // output << "in VDDY" <<endl;
+  // for(int y=0;y<20;y++) {
+  //   for(int x=0;x<5;x++)
+  //     output << result[x][y][0] << ", ";
+  //   output << endl;
+  // }
+  //return result;
   return interp_to(result, outloc);
 }
 

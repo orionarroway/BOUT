@@ -916,7 +916,7 @@ bool Field2D::checkData(bool vital) const {
 
     for(jx=mesh->xstart;jx<=mesh->xend;jx++)
       for(jy=mesh->ystart;jy<=mesh->yend;jy++)
-	if(!::finite(data[jx][jy])) {
+	if(!::finite(data[jx][jy]) and (data[jx][jy] != 0)) {
 	  throw BoutException("Field2D: Operation on non-finite data at [%d][%d]\n", jx, jy);
 	}
   }
