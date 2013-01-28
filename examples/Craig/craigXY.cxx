@@ -14,6 +14,8 @@
 #include <invert_parderiv.hxx>
 #include <invert_laplace_gmres.hxx>
 #include <inverter.hxx>
+#include <full_gmres.hxx>
+
 // Evolving variables 
 Field3D u, n; //vorticity, density
 
@@ -38,7 +40,9 @@ BoutReal alpha, nu, mu,gam, beta;
 //class Laplacian *lap = Laplacian::create();
 class Laplacian *lap;
 
-Inverter *full_lap;
+Solver *phisolver;
+
+//Inverter *full_lap;
 //class Laplacian *lap = Laplacian::create();
 
 //solver options
@@ -145,19 +149,38 @@ int physics_init(bool restarting)
  
   //const Field2D A =0.0;
 
+  phisolver = Solver::create();
+  phisolver->add(phi,"phi"); //physics inti normally
+  //bout_run(phisolver, physics_run);
+  
+  /*
+  phisolver->init(rhs,boot restart,int nout,BoutReal tstep); //physics run
+  phisolver->run();
+  */
+
   lap  = Laplacian::create(globaloptions->getSection("fullLap"));
   //class Laplacian *lap = Laplacian::create(options->getSection("fullLap"));
   lap->setCoefA(0);
   lap->setCoefC(1e-24);
   phi = lap->solve(u);
 
-
-  full_lap = new Inverter();
+  Field3D A = 0.0;
+  Field3D C = 1e-24;
+  
+  //lapinv = new LaplaceGMRES();
+  //phi = lapinv->invert(u,phi,true,NULL,NULL);
+  //phi = lapinv->invert(u,phi,true,&A,&C);
+  //full_lap = new Inverter();
   //lap->
   return 0;
 }
 
 #define bracket3D(f, g) ( b0xGrad_dot_Grad(f, g) )
+
+int invert_run()
+{
+  ddt(
+}
 
 int physics_run(BoutReal t)
 {

@@ -10,9 +10,9 @@
 #include <derivs.hxx>
 #include <initialprofiles.hxx>
 #include <invert_laplace.hxx>
+#include <invert_parderiv.hxx>
+#include <invert_laplace_gmres.hxx>
 
-// #include <invert_parderiv.hxx>
-// #include <invert_laplace_gmres.hxx>
 // Evolving variables 
 Field3D u, n; //vorticity, density
 
@@ -30,19 +30,14 @@ Field3D C_phi;
 //other params
 BoutReal alpha, nu, mu,gam, beta;
 
-//special inverter classes
-//InvertPar *inv; // Parallel inversion cla
-//LaplaceGMRES *lapinv;
-//Laplacian *lap;
-
-class Laplacian *lap;
-//class Laplacian *lap = Laplacian::create();
 
 //solver options
 bool use_jacobian, use_precon;
 
 //experimental
 bool use_constraint;
+
+int MZ;
 
 FieldGroup comms; // Group of variables for communications
 
@@ -61,8 +56,7 @@ int physics_init(bool restarting)
   // BoutReal v0_multiply;
 
   // // Read initial conditions
-  //class Laplacian *lap = Laplacian::create();
-  //lap::create();
+
   // mesh->get(N0, "density");
   // mesh->get(P0, "pressure");
   // V0.covariant = false; // Read contravariant components
@@ -82,6 +76,7 @@ int physics_init(bool restarting)
   OPTION(options, gam, 1e1);
   OPTION(options, beta, 6e-4);
 
+  OPTION(globaloptions,MZ,33);
 
   OPTION(solveropts,use_precon,false);
   OPTION(solveropts,use_jacobian,true);
@@ -98,16 +93,14 @@ int physics_init(bool restarting)
 
   bout_solve(u, "u");
   comms.add(u);
-  phi = invert_laplace(u, phi_flags); 
-
+  //phi = invert_laplace(u, phi_flags);
+  static Field2D A = 0.0;
+  static Field2D C = 1e-12;
+  static Field2D D = 1.0;
   
- 
-  // lap->setCoefC(0.0);
-  // lap->setFlags(phi_flags);
-  u.applyBoundary("dirichlet");
-  //phi = lap->solve(u);
+  phi = invert_laplace(u, phi_flags,&A,&C,&D);
+  //Laplacian *lap = Laplacian::create();
   
-
   bout_solve(n, "n");
   comms.add(n);
   //u.setBoundary("u");
@@ -139,11 +132,6 @@ int physics_init(bool restarting)
   output.write("use jacobian %i \n",use_jacobian);
   output.write("use precon %i \n",use_precon);
   output.write("DONE WITH PHYSICS_INIT\n");
- 
-  //const Field2D A =0.0;
-
-  //lap->create(globaloptions->getSection("fullLap"));
-  // lap->setCoefA(A);
 
   return 0;
 }
@@ -154,19 +142,13 @@ int physics_run(BoutReal t)
 {
   // Run communications
   mesh->communicate(comms);
-  //phi = lap->solve(u);
-
-  //lap->create(globaloptions->getSection("laplacian"));
-  //lap->create();
-  //lap->setCoefA(0.0);
-
+  //phi = invert_laplace(u, phi_flags);
+  
   static Field2D A = 0.0;
-  static Field2D C = 1e-10;
+  static Field2D C = 1e-24;
   static Field2D D = 1.0;
   
   phi = invert_laplace(u, phi_flags,&A,&C,&D);
-  //phi = invert_laplace(u, phi_flags,&A);
-  
   //phi = LaplaceGMRES
   //output.write("mesh->dx): %g \n",beta);
   // if (use_constraint){
@@ -174,7 +156,7 @@ int physics_run(BoutReal t)
   //   ddt(phi) -= gam * (phi - invert_laplace(u,phi_flags));
   // }
 
-  //phi.applyBoundary("neumann");
+  phi.applyBoundary("neumann");
   //phi.applyBoundary("dirichlet");
   // Density
   //f = lowPass(f,1);
@@ -192,15 +174,17 @@ int physics_run(BoutReal t)
   // brkt = ((phi - brkt))/(brkt + 1e-10);
   // //brkt.applyBoundary("neumann");
   //brkt.applyBoundary("dirichlet");
-  test1 = u - Laplacian(phi);
+  test1 = u - Delp2(phi);
   //test2 = mybracket(phi,DDX(n));
-  brkt = mybracket(phi,n);
+  //brkt = mybracket(phi,n);
   
-  ddt(u) -= mybracket(phi,u);
+  //ddt(u) -= mybracket(phi,u);
+  ddt(u) += bracket3D(phi,u);
   ddt(u) += alpha * phi;
-  ddt(u) += nu * Laplacian(u);
+  ddt(u) += nu * Delp2(u);
   //ddt(u) -= beta * DDY(n); 
-  ddt(u) -= beta* Grad_par(n)/n; 
+  ddt(u) -= beta* DDZ(n)/(mesh->dz); 
+  ddt(u) = lowPass(ddt(u),MZ/8);
   // ddt(u) -= Grad_par(n); 
   //ddt(u).applyBoundary("dirichlet");
 
@@ -210,9 +194,11 @@ int physics_run(BoutReal t)
  
 
   
-  ddt(n) -= mybracket(phi,n);
-  ddt(n) += mu * Laplacian(n);
+  //ddt(n) -= mybracket(phi,n);
+  ddt(n)  += bracket3D(phi,n);
+  ddt(n) += mu * Delp2(n);
   ddt(n) -= alpha* n;
+  ddt(n) = lowPass(ddt(n),MZ/8);
   //ddt(n).applyBoundary("dirichlet");
   //ddt(u).applyBoundary("neumann");
   //mesh->communicate(ddt(n),ddt(u));
@@ -309,29 +295,34 @@ const Field3D mybracket(const Field3D &phi, const Field3D &A)
 int jacobian(BoutReal t) {
   mesh->communicate(ddt(u),ddt(n));
   
-
-  ddt(phi) = invert_laplace(ddt(u), phi_flags); 
+  static Field2D A = 0.0;
+  static Field2D C = 1e-12;
+  static Field2D D = 1.0;
+  
+  ddt(phi) = invert_laplace(ddt(u), phi_flags,&A,&C,&D);
+  //ddt(phi) = invert_laplace(ddt(u), phi_flags); 
 
   mesh->communicate(ddt(phi));
 
   u=0;
   n=0;
 
-  u -= mybracket(ddt(phi),ddt(u));
+  //u -= mybracket(ddt(phi),ddt(u));
+  u += bracket3D(ddt(phi),ddt(u));
   //ddt(u) += alpha * phi;
-  u += nu * Laplacian(ddt(u));
+  u += nu * Delp2(ddt(u));
   //ddt(u) -= beta * DDY(n)/n; 
   //ddt(u) -= beta* Grad_par(n)/n; 
-  u -= Grad_par(ddt(n)); 
+  //u -= Grad_par(ddt(n)); 
   //ddt(u).applyBoundary("dirichlet");
-
+  u -= beta* DDZ(n); 
   //mesh->communicate(comms); no don't do this here
   //.applyBoundary();
   //brkt = VDDY(DDY(phi), n) +  VDDZ(DDZ(phi), n) ;
  
-
-  n -= mybracket(ddt(phi),ddt(n));
-  n += mu * Laplacian(ddt(n));
+  n += bracket3D(ddt(phi),ddt(n));
+  //n -= mybracket(ddt(phi),ddt(n));
+  n += mu * Delp2(ddt(n));
   //n -= alpha* n;
   
   n.applyBoundary();

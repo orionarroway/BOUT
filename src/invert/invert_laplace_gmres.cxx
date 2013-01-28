@@ -6,6 +6,7 @@
 
 const Field3D LaplaceGMRES::invert(const Field3D &b, const Field3D &start, int inv_flags, bool precon, Field3D *a, Field3D *c)
 {
+  
   flags = inv_flags;
 
   enable_a = (a != NULL);
@@ -34,6 +35,7 @@ const Field3D LaplaceGMRES::invert(const Field3D &b, const Field3D &start, int i
   }else
     rhs = b;
   
+  //return rhs;
   int restart=10;
   int itmax=100;
   BoutReal tol=1.e-7;
@@ -41,9 +43,11 @@ const Field3D LaplaceGMRES::invert(const Field3D &b, const Field3D &start, int i
   // Call the solver
   Field3D result;
   result = start;
+  //return rhs;
   solve(rhs, result,
 		      flags, 
 		      restart, itmax, tol);
+  //return rhs;
   return result;
 }
 

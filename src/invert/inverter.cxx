@@ -40,6 +40,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <bout.hxx>
+
 /**************************************************************************
  * Constructor / Destructor
  **************************************************************************/
@@ -64,6 +66,7 @@ int Inverter::solve(const FieldPerp &b, FieldPerp &x, int flags, int restart, in
   int iterations;
   BoutReal residual;
   
+  //return 1.0;
   int status = gmres_solve(*(b.getData()), *(x.getData()), mesh->ngx*mesh->ngz, 
 			   restart, itmax, tol, iterations, residual);
   
@@ -77,6 +80,8 @@ int Inverter::solve(const Field3D &b, Field3D &x,
 		    int restart, int itmax,
 		    BoutReal tol)
 {
+
+  output.write("yes to invert!!! \n");
   int ys = 0, ye = mesh->ngy-1;
   // NOTE: REFINE THIS TO ONLY SOLVE IN BOUNDARY Y CELLS
   
@@ -290,6 +295,8 @@ void Inverter::ApplyPlaneRotation(BoutReal *dx, BoutReal *dy, BoutReal cs, BoutR
 
 int Inverter::gmres_solve(BoutReal *b, BoutReal *x, int n, int m, int itmax, BoutReal tol, int &iterations, BoutReal &residual)
 {
+
+  output.write("yes to gmres_solve \n");
   int i;
   int it, itt, p;
   BoutReal normb, beta, resid;
@@ -338,6 +345,7 @@ int Inverter::gmres_solve(BoutReal *b, BoutReal *x, int n, int m, int itmax, Bou
     v = rmatrix(m+1, n);
   }
 
+  
   /************************************/
 
   /* normb = |b| */
