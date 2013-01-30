@@ -1,0 +1,389 @@
+import post_bout as pb
+meta
+
+
+s = subset(a,'dz',[0.1])
+
+logname='status_hlmk_3D.log'
+logname='status_haswak.log'
+logname='status_hlmk_precon.log'
+from post_bout import pb_corral, subset
+import post_bout as pb
+from pb_present import LinResPresent
+from ListDict import *
+a = pb.corral(refresh=True,IConly=0,debug=False,logname=logname)
+
+y = LinResPresent(a.db)
+y.show(debug=False,pdfname='output_haswak.pdf')
+
+a,b = pb.corral(refresh=False,IConly=0,debug=True,logname=logname)
+
+y.show(debug=False,pdfname='output_hlmk_3D.pdf')
+
+from post_bout import pb_corral
+import post_bout as pb
+from pb_present import LinResPresent
+a = pb.corral(refresh=False,skew=True,IConly=0,debug=False)
+xx,yy = pb.corral(refresh=False)
+y = LinResPresent(a.db)
+y.show(debug=False,pdfname='output_haswak_lownu_bz.pdf')
+
+logname='status_hlmk_3D.log'
+
+from post_bout import pb_corral
+import post_bout as pb
+from pb_present import LinResPresent
+a = pb.corral(refresh=True,skew=True,IConly=0,debug=False,logname=logname)
+from matplotlib.backends.backend_pdf import PdfPages
+pp = PdfPages('nl.pdf')
+y = LinResPresent(a.db)
+y.plotnlrhs(pp)
+pp.close()
+
+
+filename='post_bout.db'
+
+
+import post_bout as pb
+meta = pb.metadata(path='./')
+old,new = pb.save(path='./',transform=True,debug=False)
+
+import post_bout as pb
+pb.save(path='./',transform=True,debug=True)
+
+import post_bout as pb
+pb.save(path='./', transform=True)
+
+
+import post_bout as pb
+pb.save(path='./')
+
+import post_bout as pb
+meta = pb.metadata(path='./')
+gradNi0 = pb.boutdata.collect('gradNi0')
+Ni0 = pb.boutdata.collect('Ni0')
+Ni_x = pb.boutdata.collect('Ni_x')
+L = meta['L']
+Rxy = meta['Rxy']
+DXRxy =  pb.boutdata.collect('DXRxy')
+print DXRxy * gradNi0**-1
+import post_bout as pb
+
+from read_inp import metadata 
+path = '/tmp/hlmk/data_hlmk_3D_1e-1/'
+meta = metadata(path=path)
+
+from boutdata import collect
+from boututils import savemovie,showdata
+import numpy as np
+ni = np.squeeze(collect("Ni",yind=[5,5]))
+ddtni = np.squeeze((np.gradient(ni))[0])
+ddt = np.squeeze(collect("ddtNi",yind=[5,5]))
+nl = np.squeeze(collect("Ni_nl",yind=[5,5]))
+
+
+
+from boutdata import collect
+from boututils import showdata
+ni = collect("Ni")
+rho = collect("rho")
+import matplotlib.pyplot as plt
+
+
+savemovie(rho[:,:,5,:],ni[:,:,5,:],moviename="rho_ni.avi",meta=meta)
+
+savemovie(gamma[:,:,0,:],ni[:,:,0,:],moviename="Gammax_with_ni.avi",meta=meta)
+
+savemovie(gamma[:,2:-2,0,:],ni[:,2:-2,0,:],moviename="Gammax_with_ni.avi",posdata=posdata)
+
+
+z = np.array(np.gradient(ni))[0]
+showdata(z[40:,2,:,:])
+
+
+import post_bout as pb
+meta = pb.metadata(path='./')
+ni = pb.boutdata.collect('Ni')
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.backends.backend_pdf import PdfPages
+meta = pb.metadata(path='./')
+pp = PdfPages('rotate.pdf')
+fig = plt.figure()
+img00 = fig.add_subplot(1,1,1)
+img00.contourf(ni[0,2,:,:],interpolation='bilinear', cmap=None)
+fig.savefig(pp, format='pdf')
+plt.close(fig)
+old,new = pb.save(path='./',transform=True,debug=True)
+fig = plt.figure()
+img00 = fig.add_subplot(1,1,1)
+img00.contourf(old[0,2,:,:],interpolation='bilinear', cmap=None)
+fig.savefig(pp, format='pdf')
+plt.close(fig)
+
+from boutdata import collect
+from boututils import savemovie,showdata
+from post_bout import normed as n 
+ni,ni_amp = n.normed(collect("Ni",xind=[2,2]))
+rho,rho_amp = n.normed(collect("rho",xind=[2,2]))
+ddtni,x = n.normed(collect("ddtNi",xind=[2,2]))
+ddtrho,x = n.normed(collect("ddtrho",xind=[2,2]))
+jpar,jpar_amp = n.normed(collect("jpar",xind=[2,2]))
+phi,phi_amp = n.normed(collect("phi",xind=[2,2]))
+
+
+jparLtoC
+jparC4
+jparC2
+jparW3
+jparU1
+
+showdata(ddtni[:,0,:,:])
+showdata(jpar[:,0,:,:])
+showdata(phi[:,0,:,:])
+showdata(rho[:,0,:,:])
+
+showdata(ddtrho[:,0,:,:])
+showdata(ni[:,0,:,:])
+
+showdata(ddtrho[:,2,:,:])
+ddtni = collect("ddtNi")
+import matplotlib.pyplot as plt
+fig = plt.figure()
+img00 = fig.add_subplot(1,1,1)
+img00.contourf(ddtni[3,2,:,:],interpolation='bilinear', cmap=None)
+fig.show()
+
+
+
+
+fig.savefig(pp, format='pdf')
+plt.close(fig)
+pp.close()
+
+z = pb.rotate(ni[0:10,:,:,:],meta,view=True)
+
+
+#test the old spectral method on new data
+ICmodes =[[1,1],[1,2],[1,3],[1,4],[1,5]]
+import post_bout as pb
+meta = pb.metadata(path='./')
+ni = pb.boutdata.collect('Ni')
+z = pb.rotate(ni,meta,view=False) #make this more flexibable
+modes_db,ave = basic_info(z,meta,user_peak = ICmodes) 
+	   
+modes_db,ave = basic_info(data_r[active],meta,
+                                      user_peak = ICmodes)
+	
+
+#for testing the original rotate routine
+from boutdata import collect
+import post_bout as pb
+from read_inp import metadata
+path = '/tmp/2fluid/data_bz_11_1e-1'
+ni = collect('Ni',path=path)
+meta = pb.metadata(path=path)
+from rotate import rotate
+z = rotate(ni,meta,debug=True)
+
+#let's test fft of the rotated images
+from boutdata import collect
+import post_bout as pb
+from read_inp import metadata
+path = './'
+ni = collect('Ni',path=path)
+meta = pb.metadata(path=path)
+from rotate_mp import rotate_mp
+from rotate2 import rotate
+z = rotate(ni,meta,debug=False,cached=Falses,view=True)
+
+
+
+import post_bout
+a = post_bout.corral(cached=True)
+a.show2()
+
+b = post_bout.LinRes(data=a)
+b.modes()
+dir(b)
+
+import post_bout
+from replab_lineplot import LineLegendExample 
+from reportlab.platypus import *
+a = LineLegendExample()
+doc = SimpleDocTemplate('new.pdf')
+doc.build([a])
+
+
+
+a = post_bout.corral(cached=True)
+a.show2()
+
+
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.backends.backend_pdf import PdfPages
+import post_bout as pb
+meta = pb.metadata(path='./')
+old,new = pb.save(path='./',transform=True,debug=True)
+pp = PdfPages('rotate.pdf')
+fig = plt.figure()
+img00 = fig.add_subplot(1,1,1)
+img00.contourf(old[0,2,:,:],interpolation='bilinear', cmap=None)
+fig.savefig(pp, format='pdf')
+plt.close(fig)
+fig = plt.figure()
+img00 = fig.add_subplot(1,1,1)
+img00.contourf(new[0,2,:,:],interpolation='bilinear', cmap=None)
+fig.savefig(pp, format='pdf')
+plt.close(fig)
+fig.savefig(pp, format='pdf') 
+pp.close()
+
+
+import sys
+import pickle
+import os
+import json
+    
+
+boutpath = os.environ['BOUT_TOP']
+pylibpath = boutpath+'/tools/pylib'
+pbpath = pylibpath+'/post_bout'
+boutdatapath = pylibpath+'/boutdata'
+boututilpath = pylibpath+'/boututils'
+    
+allpath = [boutpath,pylibpath,pbpath,boutdatapath,boututilpath]
+    # sys.path.append('/home/cryosphere/BOUT/tools/pylib')
+    # sys.path.append('/home/cryosphere/BOUT/tools/pylib/boutdata')
+    # sys.path.append('/home/cryosphere/BOUT/tools/pylib/boututils')
+    # sys.path.append('/home/cryosphere/BOUT/tools/pylib/post_bout')
+    #sys.path.append(allpath)
+[sys.path.append(elem) for elem in allpath]
+print sys.path
+
+
+#to debug some plotomega stuff
+from pb_draw import LinResDraw,subset
+from pb_corral import LinRes
+import numpy as np
+import matplotlib.pyplot as plt
+
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.artist as artist 
+import matplotlib.ticker as ticker
+#from matplotlib.ticker import FuncFormatter
+#from matplotlib.ticker import ScalarFormatter 
+
+from reportlab.platypus import *
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.rl_config import defaultPageSize
+from reportlab.lib.units import inch
+from reportlab.graphics.charts.linecharts import HorizontalLineChart
+from reportlab.graphics.shapes import Drawing
+from reportlab.graphics.charts.lineplots import LinePlot
+from reportlab.graphics.widgets.markers import makeMarker
+from reportlab.lib import colors
+
+from replab_x_vs_y import RL_Plot
+from post_bout import pb_corral
+import post_bout as pb
+from pb_present import LinResPresent
+a = pb.corral(refresh=False,skew=True,IConly=0,debug=False,logname='status_haswak+lownu+bz1_10+nl.log')
+self=a
+pp = PdfPages('output.pdf')
+modelist =[]
+[modelist.append(list(self.modeid[p])) for p in range(self.nmodes) if self.mn[p][1] <= self.maxN[p]]
+s = subset(self.db,'modeid',modelist)
+   
+dz0 = list(set(s.dz).union())[1]
+ss = subset(s.db,'dz',[dz0])
+
+s.plotvsK(pp,yscale='log',xscale='log',overplot=False,comp='amp',trans=True)
+
+files = []
+filename = str('%03d' % 0 + '.png')
+ss.plotvsK(pp,yscale='log',t=0,xscale='log',
+	overplot=False,comp='amp',trans=True,file=filename)
+
+
+
+
+
+
+
+
+
+
+pp_debug = PdfPages('debug.pdf')
+fig1 = plt.figure()
+s.plotvsK(pp_debug,yscale='log',overplot=False,comp='amp')
+pp_bug.close()
+
+s.plotfreq2(pp_bug,xscale='log',yscale='symlog',overplot=True)
+ss.plotgamma(pp_bug,xscale='log',yscale='symlog',overplot=True)
+ss.plottheory(pp_bug)
+ss.plottheory(pp_bug,comp='freq')
+fig1.savefig(pp_bug, format='pdf')   
+pp_bug.close()
+pp.close()
+
+from post_bout import subset
+self = a
+field='Ni'
+s = subset(self.db,'field',[field])
+modelist = []
+m=1
+[modelist.append([m,n+1]) for n in range(7)]
+s = subset(s.db,'mn',modelist)
+allk = s.k[:,1,s.nx/2]
+ki = np.argsort(allk)
+y1 = np.array(a.models[1].omegamax).flatten()
+y0 = np.array(a.models[0].omegamax).flatten()
+
+
+pp = PdfPages('debug.pdf')
+fig1 = plt.figure()
+canvas = fig1.add_subplot(1,1,1) 
+
+
+#make a movie
+colors = ['b','g','r','c','m','y','k','b','g','r','c','m','y','k']
+pp = PdfPages('output_debug.pdf')
+self=a
+modelist =[]
+[modelist.append(list(self.modeid[p])) for p in range(self.nmodes) if self.mn[p][1] <= self.maxN[p] ]
+s = subset(self.db,'modeid',modelist)
+fig = Figure(figsize=(6,6))
+a_amp = np.array([s.amp[i][1,int(s.nx/2)] for i in range(s.nmodes)])
+plt.scatter(s.mn[:,1],s.mn[:,0],s = 5*s.mn.max()*s._amp(1,int(s.nx/2))/s._amp(1,int(s.nx/2)).mean())
+plt.annotate(str(list(s.mn[0,:])),tuple(s.mn[0,:]+.2))
+plt.title('n-m spectrum at t=0')
+plt.xlabel('n')
+plt.ylabel('m')
+plt.grid(True,linestyle='-',color='.75')
+plt.savefig(pp, format='pdf')
+
+plt.close() 
+
+plt.figure()
+i = 0
+for j in list(set(s.dz).union()):    #looping over runs, over unique 'dz' key values
+    ss = subset(s.db,'dz',[j])  #subset where dz = j
+    plt.scatter(ss.MN[:,1],ss.MN[:,0],c=colors[i])
+    plt.annotate(str(j),(ss.MN[0,1],ss.MN[0,0]))
+    i+=1
+plt.title(' Ni spectrum at t=0, all x')
+plt.ylabel('M -parallel')
+plt.xlabel('N -  axisymmteric')
+plt.xscale('log')
+plt.grid(True,linestyle='-',color='.75')
+plt.savefig(pp, format='pdf')
+plt.close() 
+
+pp.close()

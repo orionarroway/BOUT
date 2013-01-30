@@ -41,6 +41,8 @@ const char DEFAULT_OPT[] = "BOUT.inp";
 #define GLOBALORIGIN
 
 #include "mpi.h"
+#include <callPy.hxx>
+
 
 #include <boutcomm.hxx>
 #include <bout.hxx>
@@ -80,6 +82,8 @@ void bout_signal_handler(int sig);  // Handles segmentation faults
 BoutReal simtime;
 int iteration;
 
+const char *data_dir;
+
 const string time_to_hms(BoutReal t);   // Converts to h:mm:ss.s format
 char get_spin();                    // Produces a spinning bar
 
@@ -89,7 +93,7 @@ void BoutInitialise(int argc, char **argv) {
 
   string dump_ext; ///< Extensions for restart and dump files
 
-  const char *data_dir; ///< Directory for data input/output
+  //const char *data_dir; ///< Directory for data input/output
   const char *opt_file; ///< Filename for the options file
   
 #ifdef SIGHANDLE
@@ -283,7 +287,7 @@ void BoutInitialise(int argc, char **argv) {
 int bout_run(Solver *solver, rhsfunc physics_run) {
   // Get options
   Options *options = Options::getRoot();
-  
+  int pbstatus;
   bool restart;
   OPTION(options, restart, false);
   int NOUT;
@@ -340,6 +344,25 @@ int bout_run(Solver *solver, rhsfunc physics_run) {
     output << e->what() << endl;
     return 1;
   }
+
+  try {
+    /// Post-processing
+    
+    output << "data_dir \n" << data_dir <<endl;
+    //char *data_dir_cp;
+    char *cpy_str = (char *)malloc(strlen(data_dir) + 1 * sizeof(char));
+    //char *ptr;
+    strcpy(cpy_str,data_dir);
+    output << "data_dir \n" << cpy_str <<endl;
+    char* pbinput [3] = {"post_bout","save",cpy_str};
+    ///char* pbinput [3] = {"post_bout","save",strcat(path_key,data_dir)};
+    pbstatus = callPy(3,pbinput); 
+  }catch(BoutException *e) {
+    output << "Error encountered during post-processing\n";
+    output << e->what() << endl;
+    return 1;
+  }
+
   return status;
 }
 
