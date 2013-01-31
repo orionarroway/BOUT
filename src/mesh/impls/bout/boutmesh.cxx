@@ -127,13 +127,14 @@ int BoutMesh::load() {
     BoutReal ideal = sqrt(MX * NPES / ny); // Results in square domains
 
     for(int i=1; i<= NPES; i++) { // Loop over all possibilities
-      output.write("Testing %d: %d, %d, %d, %d, %d\n",
-                   i, NPES % i, MX % i, MX / i, ny % (NPES/i), ny / (NPES/i));
+      //output.write("Testing %d: %d, %d, %d, %d, %d\n",
+      //             i, NPES % i, MX % i, MX / i, ny % (NPES/i), ny / (NPES/i));
       if( (NPES % i == 0) &&      // Processors divide equally
           (MX % i == 0) &&        // Mesh in X divides equally
     //      (MX / i >= MXG) &&      // Resulting mesh is large enough
           (ny % (NPES/i) == 0) && // Mesh in Y divides equally
           (ny / (NPES/i) >= MYG) ) {
+        
         output.write("  Good value: %d\n", i);
         // Found an acceptable value
         if((NXPE < 1) || 
@@ -571,8 +572,9 @@ int BoutMesh::load() {
 #endif
       MPI_Group_range_incl(group_world, 1, &proc, &group);
       MPI_Comm_create(BoutComm::get(), group, &comm_tmp);
-      if(comm_tmp != MPI_COMM_NULL)
+      if(comm_tmp != MPI_COMM_NULL) {
 	comm_outer = comm_tmp;
+      }
       MPI_Group_free(&group);
     }
     
@@ -584,6 +586,10 @@ int BoutMesh::load() {
 
     if((jyseps1_1 >= 0) || (jyseps2_2 < ny)) {
       // A lower PF region exists
+
+#ifdef COMMDEBUG
+      output << "Creating lower PF communicators for xp = " << i << endl;
+#endif
 
       msg_stack.push("Creating lower PF communicators for xp=%d", i);
 
@@ -607,17 +613,14 @@ int BoutMesh::load() {
       MPI_Comm_create(BoutComm::get(), group, &comm_tmp);
       if(comm_tmp != MPI_COMM_NULL) {
 	comm_inner = comm_tmp;
-	if(ixseps_lower == ixseps_outer) {
-	  // Between the separatrices is still in the PF region
-          MPI_Comm_dup(comm_inner, &comm_middle);
-	}else
-          MPI_Comm_dup(comm_outer, &comm_middle);
       }
       MPI_Group_free(&group);
-      if(group_tmp1 != MPI_GROUP_EMPTY)
+      if(group_tmp1 != MPI_GROUP_EMPTY) {
         MPI_Group_free(&group_tmp1);
-      if(group_tmp2 != MPI_GROUP_EMPTY)
+      }
+      if(group_tmp2 != MPI_GROUP_EMPTY) {
         MPI_Group_free(&group_tmp2);
+      }
       
       msg_stack.pop();
     }
@@ -626,6 +629,9 @@ int BoutMesh::load() {
       // Upper PF region
       // Note need to order processors so that a continuous surface is formed
       
+#ifdef COMMDEBUG
+      output << "Creating upper PF communicators for xp = " << i << endl;
+#endif
       msg_stack.push("Creating upper PF communicators for xp=%d", i);
 
       proc[0] = PROC_NUM(i, YPROC(ny_inner));
@@ -640,10 +646,6 @@ int BoutMesh::load() {
       MPI_Comm_create(BoutComm::get(), group, &comm_tmp);
       if(comm_tmp != MPI_COMM_NULL) {
 	comm_inner = comm_tmp;
-	if(ixseps_upper == ixseps_outer) {
-          MPI_Comm_dup(comm_inner, &comm_middle);
-	}else
-          MPI_Comm_dup(comm_outer, &comm_middle);
       }
       MPI_Group_free(&group);
       if(group_tmp1 != MPI_GROUP_EMPTY)
@@ -679,9 +681,6 @@ int BoutMesh::load() {
     MPI_Comm_create(BoutComm::get(), group, &comm_tmp);
     if(comm_tmp != MPI_COMM_NULL) {
       comm_inner = comm_tmp;
-      
-      if(ixseps_inner == ixseps_outer)
-        MPI_Comm_dup(comm_inner, &comm_middle);
     }
     
     if(group_tmp1 != MPI_GROUP_EMPTY)
@@ -693,9 +692,16 @@ int BoutMesh::load() {
     msg_stack.pop();
   }
   
-  if(ixseps_inner != ixseps_outer) {
+  if(ixseps_inner == ixseps_outer) {
+    // Balanced null, so no middle
+    MPI_Comm_dup(comm_inner, &comm_middle);
+  }else {
     // Need to handle unbalanced double-null case
     
+#ifdef COMMDEBUG
+    output << "Unbalanced " << endl;
+#endif
+
     if(ixseps_upper > ixseps_lower) {
       // middle is connected to the bottom
       
@@ -747,6 +753,10 @@ int BoutMesh::load() {
   }
   MPI_Group_free(&group_world);
   // Now have communicators for all regions.
+
+#ifdef COMMDEBUG
+  output << "Got communicators" << endl;
+#endif
 
   //////////////////////////////////////////////////////
   /// Calculate Christoffel symbols. Needs communication
@@ -1718,37 +1728,31 @@ bool BoutMesh::IS_MYPROC(int xind, int yind)
 }
 
 /// Returns the global X index given a local index
-int BoutMesh::XGLOBAL(int xloc)
-{
+int BoutMesh::XGLOBAL(int xloc) const {
   return xloc + PE_XIND * MXSUB;
 }
 
 /// Returns a local X index given a global index
-int BoutMesh::XLOCAL(int xglo)
-{
+int BoutMesh::XLOCAL(int xglo) const {
   return xglo - PE_XIND * MXSUB;
 }
 
 /// Returns the global Y index given a local index
-int BoutMesh::YGLOBAL(int yloc)
-{
+int BoutMesh::YGLOBAL(int yloc) const {
   return yloc + PE_YIND*MYSUB - MYG;
 }
 
 /// Global Y index given local index and processor
-int BoutMesh::YGLOBAL(int yloc, int yproc)
-{
+int BoutMesh::YGLOBAL(int yloc, int yproc) const {
   return yloc + yproc*MYSUB - MYG;
 }
 
 /// Returns a local Y index given a global index
-int BoutMesh::YLOCAL(int yglo)
-{
+int BoutMesh::YLOCAL(int yglo) const {
   return yglo - PE_YIND*MYSUB + MYG;
 }
 
-int BoutMesh::YLOCAL(int yglo, int yproc)
-{
+int BoutMesh::YLOCAL(int yglo, int yproc) const {
   return yglo - yproc*MYSUB + MYG;
 }
 
@@ -2753,12 +2757,12 @@ const Field3D BoutMesh::smoothSeparatrix(const Field3D &f) {
   return result;
 }
 
-BoutReal BoutMesh::GlobalX(int jx) {
+BoutReal BoutMesh::GlobalX(int jx) const {
   return ((BoutReal) XGLOBAL(jx)) / ((BoutReal) MX);
   //return ((BoutReal) XGLOBAL(jx)) / ((BoutReal) nx-1);
 }
 
-BoutReal BoutMesh::GlobalY(int jy) {
+BoutReal BoutMesh::GlobalY(int jy) const {
   int ly = YGLOBAL(jy); // global poloidal index across subdomains
   int nycore = (jyseps1_2 - jyseps1_1) + (jyseps2_2 - jyseps2_1);
 
