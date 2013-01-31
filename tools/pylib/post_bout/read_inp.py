@@ -167,13 +167,13 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     
         
     
-
-    # try:         
-    #    if inp['[physics]'].get('transport','False').lower().strip() == 'true':
-    #       vEBstr = ['vEBx','vEBy','vEBz','vEBrms']     
-    #       [collected.append(item) for item in vEBstr]
-    # except:
-    #    print 'no [physics] key'
+             
+    try:         
+       if inp['[physics]'].get('transport','False').lower().strip() == 'true':
+          vEBstr = ['vEBx','vEBy','vEBz','vEBrms']     
+          [collected.append(item) for item in vEBstr]
+    except:
+       print 'no [physics] key'
                 
     meta = OrderedDict()
     
@@ -226,7 +226,7 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     #if case some values are missing   
     default = {'bmag':1,'Ni_x':1,'NOUT':100,'TIMESTEP':1,
                'MZ':32,'AA':1,'Zeff':ValUnit(1,''),'ZZ':1,
-               'zlowpass':0.0}
+               'zlowpass':0.0,'transport':False}
     diff = set(default.keys()).difference(set(d.keys()))
        
     for elem in diff:

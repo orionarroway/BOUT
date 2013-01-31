@@ -3,16 +3,16 @@ meta
 
 
 s = subset(a,'dz',[0.1])
-
-logname='status_hlmk_3D.log'
 logname='status_haswak.log'
 logname='status_hlmk_precon.log'
+
+logname='status_hlmk_3D.log'
 from post_bout import pb_corral, subset
 import post_bout as pb
 from pb_present import LinResPresent
 from ListDict import *
 a = pb.corral(refresh=True,IConly=0,debug=False,logname=logname)
-
+a.meta['transport']
 y = LinResPresent(a.db)
 y.show(debug=False,pdfname='output_haswak.pdf')
 

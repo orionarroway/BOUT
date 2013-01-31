@@ -97,10 +97,10 @@ class LinResPresent(LinResDraw,NLinResDraw,Transport):
       if self.meta['nonlinear']['v'] == 'true':
          self.plotnlrhs(pp)
  
-      if self.meta['transport']['v'] == 'true':
+      if self.meta['transport'] == 'true':
          self.plotnlrms(pp)
 
-      for elem in self.meta['evolved']['v']:
+      for elem in self.meta['evolved']:
          s.plotmodes(pp,yscale='symlog',comp='phase',linestyle='.',field=elem,summary=False)
          s.plotmodes(pp,yscale='symlog',field=elem,summary=False)
          print elem
@@ -139,7 +139,7 @@ class LinResPresent(LinResDraw,NLinResDraw,Transport):
       #ss.plotmodes(pp,yscale='log',comp='phase',clip=True)
        
        #ss.plotfreq2(pp,xscale='log',yscale='linear',overplot=False)
-      for elem in self.meta['evolved']['v']:
+      for elem in self.meta['evolved']:
          ss.plotfreq2(pp,xscale='log',yscale='symlog',field=elem,
                       overplot=True,trans=True)
       
