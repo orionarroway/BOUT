@@ -141,7 +141,7 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     #print len(IC)
     #print IC
        
-    evolved = []
+    #evolved = []
     collected =[]
     ICscale = []
    
@@ -165,15 +165,15 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     #figure out which fields are evolved
 
     for section in inp.keys(): #loop over section keys 
-       print 'section: ', section
-       if section in fieldkeys: #pick the relevant sections
-          #print section
-          #print type(inp[section].get('evolve','True'))
-          print (inp[section].get('evolve','True')).lower().strip()
-          if (inp[section].get('evolve','True').lower().strip() == 'true') and section[1:-1] in available :
-              print 'ok reading'
-              evolved.append(section.strip('[]'))
-              ICscale.append(float(inp[section].get('scale',defaultIC)))
+       # print 'section: ', section
+       # if section in fieldkeys: #pick the relevant sections
+       #    #print section
+       #    #print type(inp[section].get('evolve','True'))
+       #    print (inp[section].get('evolve','True')).lower().strip()
+       #    if (inp[section].get('evolve','True').lower().strip() == 'true') and section[1:-1] in available :
+       #        print 'ok reading'
+       #        evolved.append(section.strip('[]'))
+       #        ICscale.append(float(inp[section].get('scale',defaultIC)))
             
           if inp[section].get('collect','False').lower().strip() == 'true':
              collected.append(section.strip('[]'))
@@ -239,6 +239,8 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     #static_fields = tmp2
     
     #print availkeys
+    print meta.keys()
+    
 
     for elem in static_fields:
        print 'elem: ',elem
@@ -270,16 +272,17 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
           meta['maxZ'] = int(np.floor(meta['MZ'].v*meta['zlowpass'].v))
     else:
        meta['maxZ'] = 5
-
-    meta['nx'] = nx
-    meta['ny']= ny
+       
+    #meta['nx'] = nx
+    #meta['ny']= ny
     meta['dt'] = meta['TIMESTEP'] 
     
     
-    nx,ny  = d['Rxy'].shape
+    #nx,ny  = d['Rxy'].shape
        
        
-    print meta['AA'].v
+    #print meta['AA'].v
+    
     meta['rho_s'] = ValUnit(1.02e2*np.sqrt(d['AA']*d['Te_x'])/(d['ZZ']* d['bmag']),'cm')   # ion gyrorad at T_e, in cm 
     meta['rho_i'] = ValUnit(1.02e2*np.sqrt(d['AA']*d['Ti_x'])/(d['ZZ']* d['bmag']),'cm') 
     meta['rho_e'] = ValUnit(2.38*np.sqrt(d['Te_x'])/(d['bmag']),'cm') 

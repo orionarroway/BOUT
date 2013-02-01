@@ -81,7 +81,7 @@ def get_evolved_cxx(cxxfile=None):
     # section_0 = string.find(s,'int physics_run(BoutReal t)')
     # section_1 = string.find(s,'return',section_0)
     # s =  s[section_0:section_1]
-    evolved =[]
+    temp =[]
 
     for x in cxxfile:
         i = x.find("bout_solve(")
@@ -90,9 +90,11 @@ def get_evolved_cxx(cxxfile=None):
             comma_i = x[i::].find('"')
             comma_j = x[i::].rfind('"')      
             #print x[i+comma_i:i+comma_j+1]
-            evolved.append(x[i+comma_i:i+comma_j+1])
-            
-    return np.array(set(evolved))
+            temp.append(x[i+comma_i+1:i+comma_j])
+     
+    evolved=[]
+    [evolved.append(x) for x in set(temp)  ]
+    return np.array(evolved)
 
 
 def read_cxx(path='.',boutcxx='physics_code.cxx.ref',evolved=''):
