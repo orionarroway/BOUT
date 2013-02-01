@@ -2,6 +2,7 @@ from read_grid import read_grid
 from ordereddict import OrderedDict
 import numpy as np
 from boututils import file_import
+from read_cxx import *
 def read_inp(path='',boutinp='BOUT.inp'):
    
    
@@ -42,7 +43,7 @@ def parse_inp(boutlist):
    current='[main]'
 
    for i,val in enumerate(boutlist):
-      print i,val
+      #print i,val
       result =pattern.match(val)
       #while the current value is not a new section name add everything to the current section
       
@@ -50,7 +51,7 @@ def parse_inp(boutlist):
          #print val
          key,value = val.split("=")
          value = value.replace('\"','')
-         print current, key,value
+         #print current, key,value
 
          
          boutdic[current][key.strip()] = value.strip()
@@ -109,21 +110,32 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     filepath = path+'/'+inpfile
     print filepath
     inp = read_inp(path=path,boutinp=inpfile)
-    inp = parse_inp(inp)
-    
-    
-    
+    inp = parse_inp(inp) #inp file
+    outinfo = file_import(path+'/BOUT.dmp.0.nc') #output data
     
     try:
+       print path
+       cxxinfo = no_comment_cxx(path=path,boutcxx='physics_code.cxx.ref')
+       evolved = get_evolved_cxx(cxxinfo)
+    except:
+       print 'cant find the cxx file'
+    
+    
+    #gridoptions = {'grid':grid,'mesh':mesh}
+    if '[mesh]' in inp.keys():
+       #IC = outinfo  
+       IC = read_grid(path+'/BOUT.dmp.0.nc') #output data again
+    elif 'grid' in inp['[main]']:
        gridname = inp['[main]']['grid']
-       IC = read_grid(gridname) #have to be an ansoulte file path for now
-       print 'IC: ',type(IC)
+       try:
+          IC = read_grid(gridname) #have to be an ansoulte file path for now
+          print 'IC: ',type(IC)
        # print IC.variables
        # print gridname
-    except:
-       print gridname
-       print 'Fail to load the grid file'
-       
+       except:
+       #print gridname
+          print 'Fail to load the grid file'
+    #print IC
 
     #print gridname
     #print len(IC)
@@ -137,7 +149,6 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
                  '[Ajpar]','[Apar]','[vEBx]','[vEBy]','[vEBz]',
                  '[jpar]','[phi]']
     
-    outinfo = file_import(path+'/BOUT.dmp.0.nc')
     
 
     #just look ahead and see what 3D fields have been output
@@ -151,10 +162,12 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
 
     # print inp.keys()
 
+    #figure out which fields are evolved
+
     for section in inp.keys(): #loop over section keys 
        print 'section: ', section
        if section in fieldkeys: #pick the relevant sections
-          print section
+          #print section
           #print type(inp[section].get('evolve','True'))
           print (inp[section].get('evolve','True')).lower().strip()
           if (inp[section].get('evolve','True').lower().strip() == 'true') and section[1:-1] in available :
@@ -201,7 +214,9 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     meta['IC']= np.array(ICscale)
     d = {}
 
-    # read meta data from .inp file
+    print evolved
+
+    # read meta data from .inp file, this is whre most metadata get written
     for section in inp.keys():
         if (('evolve' not in inp[section]) and ('first' not in inp[section])): #hacky way to exclude some less relevant metadata
            for elem in inp[section].keys():
@@ -216,12 +231,22 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
              'Btxy':ValUnit(1.0e4,'gauss'),'Zxy':ValUnit(1,'m'),
              'dlthe':ValUnit(1,'m'),'dx':ValUnit(1,'m'),'hthe0':ValUnit(1,'m')}
 
-    for elem in norms.keys():
-       #print 'elem: ',elem
+    availkeys = np.array([str(x) for x in outinfo])
+    tmp1 = np.array([x for x in availkeys])
+    #b = np.array([x if x not in available for x in a])
+    tmp2 = np.array([x for x in tmp1 if x not in available])
+    static_fields = np.array([x for x in tmp2 if x in norms.keys()])
+    #static_fields = tmp2
+    
+    #print availkeys
+
+    for elem in static_fields:
+       print 'elem: ',elem
        meta[elem] = ValUnit(IC.variables[elem][:]*norms[elem].v,norms[elem].u)
        d[elem] = np.array(IC.variables[elem][:]*norms[elem].v)
     
-  
+       
+    #print d.keys()
 
     #if case some values are missing   
     default = {'bmag':1,'Ni_x':1,'NOUT':100,'TIMESTEP':1,
@@ -230,18 +255,19 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     diff = set(default.keys()).difference(set(d.keys()))
        
     for elem in diff:
+       #print 'diff: ',elem
        meta[elem] = default[elem]
        d[elem] = np.array(default[elem])
 
-    nx,ny  = d['Rxy'].shape
-    #compute some quantities that are usefull
-        
-    print meta['AA'].v
+    #print meta.keys()
+    #print d.keys()
     
-
-    if meta['zlowpass'].v != 0:
-       print meta['MZ'].v, meta['zlowpass'].v
-       meta['maxZ'] = int(np.floor(meta['MZ'].v*meta['zlowpass'].v))
+    #print meta['zlowpass']
+    
+       
+    if meta['zlowpass'] != 0:
+          print meta['MZ'].v, meta['zlowpass'].v
+          meta['maxZ'] = int(np.floor(meta['MZ'].v*meta['zlowpass'].v))
     else:
        meta['maxZ'] = 5
 
@@ -249,6 +275,11 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     meta['ny']= ny
     meta['dt'] = meta['TIMESTEP'] 
     
+    
+    nx,ny  = d['Rxy'].shape
+       
+       
+    print meta['AA'].v
     meta['rho_s'] = ValUnit(1.02e2*np.sqrt(d['AA']*d['Te_x'])/(d['ZZ']* d['bmag']),'cm')   # ion gyrorad at T_e, in cm 
     meta['rho_i'] = ValUnit(1.02e2*np.sqrt(d['AA']*d['Ti_x'])/(d['ZZ']* d['bmag']),'cm') 
     meta['rho_e'] = ValUnit(2.38*np.sqrt(d['Te_x'])/(d['bmag']),'cm') 

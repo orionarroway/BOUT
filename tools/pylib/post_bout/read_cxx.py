@@ -23,7 +23,79 @@ def findlowpass(cxxstring):
             return 20
         else:
             return output
-def read_cxx(path='.',boutcxx='q3_simp.cxx',evolved=''):
+
+def no_comment_cxx(path='.',boutcxx='physics_code.cxx.ref'):
+    #print 'no_comment'
+    boutcxx = path+'/'+boutcxx
+   #boutcxx = open(boutcxx,'r').readlines()
+    f = open(boutcxx,'r')
+    boutcxx = f.read()
+    f.close()
+
+    start =string.find(boutcxx,'/*')
+    end =string.find(boutcxx,'*/')+2
+
+    s = boutcxx[0:start]
+    for i in range(string.count(boutcxx,'/*')):
+        start =string.find(boutcxx,'/*',end)
+        s=s+boutcxx[end+1:start-1]
+        
+        end =string.find(boutcxx,'*/',end)+2
+        
+        s=s+boutcxx[end+1:] 
+    
+    #pattern = "\n \s* \(//)* .* \n" #pattern for a section start [All],[Ni], etc
+    pattern = "\n+.*;" #everythin
+    pattern = re.compile(pattern) 
+    result = re.findall(pattern,s)
+    
+    #print result
+
+    nocomment = []
+    for elem in result:
+        #print elem
+        elem = elem.lstrip()
+        stop = elem.find('//')
+        #print start,stop
+    
+        if stop >0:
+            nocomment.append(elem[0:stop])
+        elif stop == -1:
+            nocomment.append(elem)
+        
+          
+
+    #result = pattern.match(val)
+    # start = string.find(z,'\n  //')
+    # end =string.find(boutcxx,'*/')+2
+    #print nocomment
+    
+    return nocomment
+ 
+def get_evolved_cxx(cxxfile=None):
+    if cxxfile is None:
+        cxxfile = no_comment_cxx()
+    
+    
+    # s = cxxfile
+    # section_0 = string.find(s,'int physics_run(BoutReal t)')
+    # section_1 = string.find(s,'return',section_0)
+    # s =  s[section_0:section_1]
+    evolved =[]
+
+    for x in cxxfile:
+        i = x.find("bout_solve(")
+        #print i,x
+        if i != -1:
+            comma_i = x[i::].find('"')
+            comma_j = x[i::].rfind('"')      
+            #print x[i+comma_i:i+comma_j+1]
+            evolved.append(x[i+comma_i:i+comma_j+1])
+            
+    return np.array(set(evolved))
+
+
+def read_cxx(path='.',boutcxx='physics_code.cxx.ref',evolved=''):
     
     
     #print path, boutcxx

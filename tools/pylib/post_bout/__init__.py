@@ -61,7 +61,7 @@ except:
     print "Sorry no parse_inp"
 
 try:
-    from read_cxx import read_cxx
+    from read_cxx import read_cxx, get_evolved_cxx, no_comment_cxx
 except:
     print "Sorry no read_cxx"
 
