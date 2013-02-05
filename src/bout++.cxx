@@ -289,6 +289,9 @@ int bout_run(Solver *solver, rhsfunc physics_run) {
   Options *options = Options::getRoot();
   int pbstatus;
   bool restart;
+  
+  bool post_process;
+
   OPTION(options, restart, false);
   int NOUT;
   OPTION(options, NOUT, 1);
@@ -345,23 +348,26 @@ int bout_run(Solver *solver, rhsfunc physics_run) {
     return 1;
   }
 
-  try {
-    /// Post-processing
-    
-    output << "data_dir \n" << data_dir <<endl;
-    //char *data_dir_cp;
-    char *cpy_str = (char *)malloc(strlen(data_dir) + 1 * sizeof(char));
-    //char *ptr;
-    strcpy(cpy_str,data_dir);
-    output << "data_dir \n" << cpy_str <<endl;
-    char* pbinput [3] = {"post_bout","save",cpy_str};
-    ///char* pbinput [3] = {"post_bout","save",strcat(path_key,data_dir)};
-    pbstatus = callPy(3,pbinput); 
-  }catch(BoutException *e) {
-    output << "Error encountered during post-processing\n";
-    output << e->what() << endl;
-    return 1;
-  }
+  OPTION(options, post_process, false);
+  
+  if (post_process)
+    try {
+      /// Post-processing
+      
+      output << "data_dir \n" << data_dir <<endl;
+      //char *data_dir_cp;
+      char *cpy_str = (char *)malloc(strlen(data_dir) + 1 * sizeof(char));
+      //char *ptr;
+      strcpy(cpy_str,data_dir);
+      output << "data_dir \n" << cpy_str <<endl;
+      char* pbinput [3] = {"post_bout","save",cpy_str};
+      ///char* pbinput [3] = {"post_bout","save",strcat(path_key,data_dir)};
+      pbstatus = callPy(3,pbinput); 
+    }catch(BoutException *e) {
+      output << "Error encountered during post-processing\n";
+      output << e->what() << endl;
+      return 1;
+    }
 
   return status;
 }
