@@ -1,12 +1,24 @@
 # File I/O class
-# A wrapper around the NetCDF4 library, used by
-# BOUT++ routines. This allows easily changing
-# methods later.
+# A wrapper around various NetCDF libraries, used by
+# BOUT++ routines. Creates a consistent interface
+# across machines
 #
 # NOTE: NetCDF includes unlimited dimensions,
 # but this library is just for very simple
 # I/O operations. Educated guesses are made
 # for the dimensions.
+#
+# Supported libraries:
+# -------------------
+#
+# netCDF4
+#
+# Scientific.IO.NetCDF
+#
+# scipy.io.netcdf
+#   old version (create_dimension, create_variable)
+#   new version (createDimension, createVariable)
+#
 
 try:
     import numpy as np
@@ -20,16 +32,21 @@ try:
     from netCDF4 import Dataset
     library = "netCDF4"
 except ImportError:
-    print "netcdf4-python module not found"
+    #print "netcdf4-python module not found"
     
     try:
         from Scientific.IO.NetCDF import NetCDFFile as Dataset
         from Scientific.N import Int, Float
         library = "Scientific"
+        #print "  => Using Scientific.IO.NetCDF instead"
     except ImportError:
-        print "ERROR: Scientific.IO.NetCDF module not found"
-        raise
-
+        try:
+            from scipy.io.netcdf import netcdf_file as Dataset
+            library = "scipy"
+            # print "Using scipy.io.netcdf library"
+        except:
+            print "DataFile: No supported NetCDF modules available"
+            raise
 import time
 
 def getUserName():
@@ -55,24 +72,32 @@ class DataFile:
                 self.handle = Dataset(filename, "w", 
                                       'Created ' + time.ctime(time.time())
                                       + ' by ' + getUserName())
+            elif library == "scipy":
+                self.handle = Dataset(filename, "w")
             else:
                 self.handle = Dataset(filename, "w", format=format)
         else:
-            self.handle = Dataset(filename, "a")
+            if library == "scipy":
+                raise Exception("scipy.io.netcdf doesn't support appending");
+            else:
+                self.handle = Dataset(filename, "a")
+        # Record if writing
+        self.writeable = write or create
     
     def close(self):
         if self.handle != None:
             self.handle.close()
         self.handle = None
     
-    def __init__(self, filename=None):
+    def __init__(self, filename=None, write=False, create=False,
+                 format='NETCDF3_CLASSIC'):
         if filename != None:
-            self.open(filename)
+            self.open(filename, write=write, create=create, format=format)
     
     def __del__(self):
         self.close()
 
-    def read(self, name):
+    def read(self, name, ranges=None):
         """Read a variable from the file."""
         if self.handle == None: return None
         
@@ -90,15 +115,64 @@ class DataFile:
         ndims = len(var.dimensions)
         if ndims == 0:
             data = var.getValue()
-            return data[0]
+            return data #[0]
         else:
-            return var[:]
+            if ranges != None:
+                if len(ranges) != 2*ndims:
+                    print "Incorrect number of elements in ranges argument"
+                    return None
+                
+                if library == "Scientific":
+                    # Passing ranges to var[] doesn't seem to work
+                    data = var[:]
+                    if ndims == 1:
+                        data = data[ranges[0]:ranges[1]]
+                    elif ndims == 2:
+                        data = data[ranges[0]:ranges[1], 
+                                    ranges[2]:ranges[3]]
+                    elif ndims == 3:
+                        data = data[ranges[0]:ranges[1], 
+                                    ranges[2]:ranges[3],
+                                    ranges[4]:ranges[5]]
+                    elif ndims == 4:
+                        data = data[(ranges[0]):(ranges[1]),
+                                    (ranges[2]):(ranges[3]),
+                                    (ranges[4]):(ranges[5]),
+                                    (ranges[6]):(ranges[7])]
+                else:
+                    if ndims == 1:
+                        data = var[ranges[0]:ranges[1]]
+                    elif ndims == 2:
+                        data = var[ranges[0]:ranges[1], 
+                                   ranges[2]:ranges[3]]
+                    elif ndims == 3:
+                        data = var[ranges[0]:ranges[1], 
+                                   ranges[2]:ranges[3],
+                                   ranges[4]:ranges[5]]
+                    elif ndims == 4:
+                        print "Ranges = ", ranges
+                        data = var[(ranges[0]):(ranges[1]),
+                                   (ranges[2]):(ranges[3]),
+                                   (ranges[4]):(ranges[5]),
+                                   (ranges[6]):(ranges[7])]
+                return data
+            else:
+                return var[:]
 
     def list(self):
         """List all variables in the file."""
         if self.handle == None: return []
         return self.handle.variables.keys()
 
+    def dimensions(self, varname):
+        """Array of dimension names"""
+        if self.handle == None: return None
+        try:
+            var = self.handle.variables[varname]
+        except KeyError:
+            return None
+        return var.dimensions
+        
     def ndims(self, varname):
         """Number of dimensions for a variable."""
         if self.handle == None: return None
@@ -115,10 +189,23 @@ class DataFile:
             var = self.handle.variables[varname]
         except KeyError:
             return []
-        return map(lambda d: len(self.handle.dimensions[d]), var.dimensions)
+        
+        def dimlen(d):
+            dim = self.handle.dimensions[d]
+            if dim != None:
+                t = type(dim).__name__
+                if t == 'int':
+                    return dim
+                return len(dim)
+            return 0
+        return map(lambda d: dimlen(d), var.dimensions)
 
     def write(self, name, data):
         """Writes a variable to file, making guesses for the dimensions"""
+
+        if not self.writeable:
+            raise Exception("File not writeable. Open with write=True keyword")
+        
         s = np.shape(data)
 
         # Get the variable type
@@ -127,11 +214,21 @@ class DataFile:
         if t == 'NoneType':
             print "DataFile: None passed as data to write. Ignoring"
             return
-        
+            
         if t == 'ndarray':
-            # Numpy type
+            # Numpy type. Get the data type
             t = data.dtype.str
-        
+
+        if t == 'list':
+            # List -> convert to numpy array
+            data = np.array(data)
+            t = data.dtype.str
+
+        if (t == 'int') or (t == '<i8'):
+            # NetCDF 3 does not support type int64
+            data = np.int32(data)
+            t = data.dtype.str
+            
         try:
             # See if the variable already exists
             var = self.handle.variables[name]
@@ -140,7 +237,7 @@ class DataFile:
             if var.shape != s:
                 print "Datafile: Variable already exists with different size: "+ name
                 raise
-        except KeyError:
+        except:
             # Not found, so add.
 
             # Get dimensions
@@ -159,8 +256,12 @@ class DataFile:
                     d = self.handle.dimensions[name]
 
                     # Check if it's the correct size
-                    if len(d) == size:
-                        return name
+                    if type(d).__name__ == 'int':
+                        if d == size:
+                            return name;
+                    else:
+                        if len(d) == size:
+                            return name
 
                     # Find another with the correct size
                     for dn, d in self.handle.dimensions.iteritems():
@@ -182,14 +283,22 @@ class DataFile:
                         except KeyError:
                             # Not found. Create
                             print "Defining dimension "+ dn + " of size %d" % size
-                            self.handle.createDimension(dn, size)
+                            try:
+                                self.handle.createDimension(dn, size)
+                            except AttributeError:
+                                # Try the old-style function
+                                self.handle.create_dimension(dn, size)
                             return dn
                         i = i + 1
                     
                 except KeyError:
                     # Doesn't exist, so add
                     print "Defining dimension "+ name + " of size %d" % size
-                    self.handle.createDimension(name, size)
+                    try:
+                        self.handle.createDimension(name, size)
+                    except AttributeError:
+                        self.handle.create_dimension(name, size)
+                    
                 return name
                 
             # List of (size, 'name') tuples
@@ -200,16 +309,32 @@ class DataFile:
             # Create the variable
             if library == "Scientific":
                 if t == 'int':
-                    print "Integer"
                     tc = Int
                 else:
                     tc = Float
                 var = self.handle.createVariable(name, tc, dims)
+                    
+            elif library == "scipy":
+                try:
+                    # New style functions
+                    var = self.handle.createVariable(name, t, dims)
+                except AttributeError:
+                    # Old style functions
+                    var = self.handle.create_variable(name, t, dims)
             else:
                 var = self.handle.createVariable(name, t, dims)
 
+            if var == None:
+                raise Exception("Couldn't create variable")
+            
         # Write the data
-        var[:] = data
-        #var = data
+
+        try:
+            # Some libraries allow this for arrays
+            var.assignValue(data)
+        except:
+            # And some others only this
+            var[:] = data
+            
         
             
