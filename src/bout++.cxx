@@ -291,6 +291,7 @@ int bout_run(Solver *solver, rhsfunc physics_run) {
   bool restart;
   
   bool post_process;
+  OPTION(options, post_process, false);
 
   OPTION(options, restart, false);
   int NOUT;
@@ -348,10 +349,11 @@ int bout_run(Solver *solver, rhsfunc physics_run) {
     return 1;
   }
 
-  OPTION(options, post_process, false);
-  
+
   if (post_process)
     try {
+
+      Options *pp_options = options->getSection("post_process");
       /// Post-processing
       
       output << "data_dir \n" << data_dir <<endl;
