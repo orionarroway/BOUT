@@ -350,12 +350,18 @@ int bout_run(Solver *solver, rhsfunc physics_run) {
   }
 
 
-  if (post_process)
+  if (post_process){
     try {
 
       Options *pp_options = options->getSection("post_process");
       /// Post-processing
+      string pymodule;
+      string pycommand;
       
+      //OPTION(pp_options,pymodule,"post_bout");
+      //OPTION(pp_options,pycommand,"save");
+      pp_options->get("pymodule",pymodule,"save");
+
       output << "data_dir \n" << data_dir <<endl;
       //char *data_dir_cp;
       char *cpy_str = (char *)malloc(strlen(data_dir) + 1 * sizeof(char));
@@ -370,11 +376,14 @@ int bout_run(Solver *solver, rhsfunc physics_run) {
       output << e->what() << endl;
       return 1;
     }
+  }
 
   return status;
 }
 
 int BoutFinalise() {
+
+  output << "Finalise\n";
   // Delete the mesh
   delete mesh;
 

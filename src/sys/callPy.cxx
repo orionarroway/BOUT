@@ -47,7 +47,11 @@ int callPy(int argc, char *argv[])
   if (rank == 0)
     {  
 
+      PyRun_SimpleString("from time import time,ctime\n"
+			 "print 'Today is',ctime(time())\n");
+
       printf("Running on processor %d \n",rank);
+      
       Py_Initialize();
       
       PyRun_SimpleString("from time import time,ctime\n"

@@ -28,8 +28,8 @@
 #ifndef __FULL_GMRES_H__
 #define __FULL_GMRES_H__
 
-typedef const Field3D (*fgfunc) (const Field3D &b, void *data);
-
-int full_gmres(const Field3D &b, fgfunc A, Field3D &x, void *extra);
+//typedef const Field3D (*fgfunc) (const Field3D &b, void *data);
+typedef const Field3D (*fgfunc) (const Field3D &b);
+int full_gmres(const Field3D &b, fgfunc A, Field3D &x, void *extra,int m);
 
 #endif // __FULL_GMRES_H__

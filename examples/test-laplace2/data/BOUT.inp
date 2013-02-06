@@ -24,5 +24,5 @@ type = tri
 flags = 0
 
 [solver2] # Options for the second Laplacian solver
-type = petsc
+type = band
 flags = 0
