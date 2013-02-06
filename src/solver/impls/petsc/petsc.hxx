@@ -36,7 +36,6 @@ class PetscSolver;
 #define __PETSC_SOLVER_H__
 
 #include <petsc.h>
-#include <boutcomm.hxx>
 
 #include <field2d.hxx>
 #include <field3d.hxx>

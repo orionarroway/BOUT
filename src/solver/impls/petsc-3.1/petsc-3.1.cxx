@@ -26,7 +26,7 @@
 #include "petsc-3.1.hxx"
 
 #ifdef BOUT_HAS_PETSC_3_1
-#include <boutcomm.hxx>
+
 #include <globals.hxx>
 
 #include <stdlib.h>
@@ -256,7 +256,7 @@ int Petsc31Solver::init(rhsfunc f, bool restarting, int NOUT, BoutReal TIMESTEP)
 
     ierr = MatCreate(comm,&J);CHKERRQ(ierr);
     ierr = MatSetType(J, MATBAIJ);CHKERRQ(ierr);
-    std::cout << "n: " << n << "\t\t local_N: " << local_N << endl;
+    cout << "n: " << n << "\t\t local_N: " << local_N << endl;
     ierr = MatSetSizes(J,local_N, local_N, PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
     ierr = MatSetFromOptions(J);CHKERRQ(ierr);
 
@@ -318,7 +318,7 @@ int Petsc31Solver::init(rhsfunc f, bool restarting, int NOUT, BoutReal TIMESTEP)
       bool yperiodic = true;
       
       for(k=0;k<nz;k++) {
-	std::cout << "----- " << k << " -----" << endl;
+        cout << "----- " << k << " -----" << endl;
         for(j=mesh->ystart; j <= mesh->yend; j++) {
           // cout << "j " << mesh->YGLOBAL(j) << ": ";
           gj = mesh->YGLOBAL(j);

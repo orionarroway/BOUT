@@ -1,0 +1,6 @@
+module add intel
+module add mpavich2
+module add netcdf
+module add python
+#build sundials from source
+EXTRA_INCS=-I$TACC_PYTHON_DIR/include/python2.7 EXTRA_LIBS="-L$TACC_PYTHON_LIB -lpython2.7" ./configure --with-pdb=no --with-sundials=/home1/01523/meyerson/local --with-checks=3 

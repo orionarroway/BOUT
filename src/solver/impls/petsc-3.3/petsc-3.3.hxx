@@ -24,16 +24,16 @@
  *
  **************************************************************************/
 
-#ifndef BOUT_HAS_PETSC_3_3
+#ifndef BOUT_HAS_PETSC_DEV
 
 #include "../emptysolver.hxx"
-typedef EmptySolver Petsc33Solver;
+typedef EmptySolver PetscSolver;
 
 #else
-class Petsc33Solver;
+class PetscSolver;
 
-#ifndef __PETSC33_SOLVER_H__
-#define __PETSC33_SOLVER_H__
+#ifndef __PETSC_SOLVER_H__
+#define __PETSC_SOLVER_H__
 
 #include <petsc.h>
 
@@ -71,10 +71,10 @@ typedef struct snes_info {
   PetscReal norm;
 } snes_info;
 
-class Petsc33Solver : public Solver {
+class PetscSolver : public Solver {
  public:
-  Petsc33Solver();
-  ~Petsc33Solver();
+  PetscSolver();
+  ~PetscSolver();
 
   // Can be called from physics initialisation to supply callbacks
   void setPrecon(PhysicsPrecon f) {prefunc = f;}

@@ -48,8 +48,11 @@
 #define ZERO        RCONST(0.)
 #define ONE         RCONST(1.0)
 
+typedef long int IDAINT; 
+
+
 static int idares(BoutReal t, N_Vector u, N_Vector du, N_Vector rr, void *user_data);
-static int ida_bbd_res(int Nlocal, BoutReal t, 
+static int ida_bbd_res(IDAINT Nlocal, BoutReal t, 
 		       N_Vector u, N_Vector du, N_Vector rr, void *user_data);
 static int ida_pre(BoutReal t, N_Vector yy, 	 
 		   N_Vector yp, N_Vector rr, 	 
@@ -665,7 +668,7 @@ static int idares(BoutReal t,
 }
 
 /// Residual function for BBD preconditioner
-static int ida_bbd_res(int Nlocal, BoutReal t, 
+static int ida_bbd_res(IDAINT Nlocal, BoutReal t, 
 		       N_Vector u, N_Vector du, N_Vector rr, 
 		       void *user_data)
 {
