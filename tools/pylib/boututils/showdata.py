@@ -169,7 +169,7 @@ def showdata(data, scale=True, loop=False,movie=False):
         
 
 def savemovie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
-              moviename='output.avi',norm=True,
+              moviename='output.avi',norm=False,
               overcontour=True,aspect='auto',meta=None,mxg=2,
               cache='/tmp/'):
     size = data.shape
@@ -188,29 +188,40 @@ def savemovie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
     #matplotlib.use('Agg')
     
     files = []
-    if ndims == 2:
-    
-        line, = ax.plot(data[0,:])
-        if scale:
+    if ndims == 2: 
+        
+        #fig = plt.figure()
+        scale = norm
+        nt,nx = data.shape
+        #ax = fig.add_subplot(111)
+        #line, = 
+        #ax.plot(data[0,:])
+        #if scale:
             # Get data range
-            ax.set_ylim([np.min(data), np.max(data)])
+            #ax.set_ylim([np.min(data), np.max(data)])
           # while True:
+
+        x = xO + dx*np.arange(nx)   
+        for i in np.arange(nt):
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            ax.plot(x,data[i,:])
             
-            for i in np.arange(size[0]):
-                print i
-                line.set_ydata(data[i,:])
-                if not scale:
-                    ax.set_ylim([np.min(data[i,:]), np.max(data[i,:])])
+            print i
+            #line.set_ydata(data[i,:])
+            if not scale:
+                ax.set_ylim([np.min(data[:]), np.max(data[:])])
                 #fig.canvas.draw()
-                filename = str('%03d' % i) + '.png'
-                textstr = r'$\T_ci$'+ '$=%.2f$'%(i)
-                props = dict(boxstyle='square', facecolor='white', alpha=0.3)
-                textbox = ax.text(xO, yO, textstr, 
-                                  transform=ax.transAxes, fontsize=10,
-                                  verticalalignment='top', bbox=props)
-                
-                plt.savefig(filename, dpi=100)
-                files.append(filename)
+            filename = cache+str('%03d' % i) + '1D.png'
+            textstr = r'$\T_ci$'+ '$=%.2f$'%(i)
+            #props = dict(boxstyle='square', facecolor='white', alpha=0.3)
+            # textbox = ax.text(xO, yO, textstr, 
+            #                   transform=ax.transAxes, fontsize=10,
+            #                   verticalalignment='top', bbox=props)
+            print filename
+            plt.savefig(filename, dpi=100)
+            plt.close(fig)
+            files.append(filename)
                 
     
     elif ndims == 3: #typical nt x (nx or ny) X nz
@@ -230,9 +241,11 @@ def savemovie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
             data_c = data2
             if norm:
                 data_c = normalize(data_c)
+            
         else:
             data_c = data_n
-
+            
+        
         cmap = None
         #m = plt.imshow(data_n[0,:,:], interpolation='bilinear', cmap=cmap, animated=True,aspect=aspect)
         if meta != None:
@@ -276,8 +289,11 @@ def savemovie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
                             print 'not in this collection'
                 except:
                     print 'i = 0'
-
-                c = plt.contour(x,y,data_c[i,:,:],8,colors='k')
+                levels = np.linspace(np.min(data_c[i,:,:]), 
+                                     np.max(data_c[i,:,:]),8)
+                print np.where(np.min(np.abs(levels)) < np.abs(levels))
+                levels = levels[np.where(np.min(np.abs(levels)) < np.abs(levels))]
+                c = plt.contour(x,y,data_c[i,:,:],levels,colors='k')
                 #ax.annotate(str('%03d' % i),(xO +dx,yO+dy),fontsize = 20)
            
                 
