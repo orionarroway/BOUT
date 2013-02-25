@@ -25,22 +25,22 @@ except:
         widget = "wx"
     except:
         print "showdata: Couldn't import gobject or wx"
-        raise
+        #raise
     
 
 try:
     import matplotlib
-    if widget == "gtk":
-        matplotlib.use('GTKAgg')
-    else:
-        matplotlib.use('WXAgg') # do this before importing pylab
+    if 'widget' in vars():
+        if widget == "gtk":
+            matplotlib.use('GTKAgg')
+        else:
+            matplotlib.use('WXAgg') # do this before importing pylab
 
-    import numpy as np
     import matplotlib.pyplot as plt
-
+    
 except ImportError:
     print "ERROR: Showdata needs numpy, matplotlib and gobject modules"
-    raise
+    #raise
 # try:
 #     from wx import *
 #     widget = "wx"
@@ -168,14 +168,15 @@ def showdata(data, scale=True, loop=False,movie=False):
       print "Sorry can't handle this number of dimensions"
         
 
-def savemovie(data,data2=None,moviename='output.avi',norm=True,
+def savemovie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
+              moviename='output.avi',norm=True,
               overcontour=True,aspect='auto',meta=None,mxg=2,
               cache='/tmp/'):
     size = data.shape
     ndims = len(size)
     print 'Saving pictures -  this make take a while'
     fig = plt.figure()
-    ax = fig.add_subplot(111)
+    
 
     if meta != None:
         r= meta['Rxy']['v'][:,5]
@@ -202,9 +203,15 @@ def savemovie(data,data2=None,moviename='output.avi',norm=True,
                     ax.set_ylim([np.min(data[i,:]), np.max(data[i,:])])
                 #fig.canvas.draw()
                 filename = str('%03d' % i) + '.png'
+                textstr = r'$\T_ci$'+ '$=%.2f$'%(i)
+                props = dict(boxstyle='square', facecolor='white', alpha=0.3)
+                textbox = ax.text(xO, yO, textstr, 
+                                  transform=ax.transAxes, fontsize=10,
+                                  verticalalignment='top', bbox=props)
+                
                 plt.savefig(filename, dpi=100)
                 files.append(filename)
-          
+                
     
     elif ndims == 3: #typical nt x (nx or ny) X nz
 
@@ -238,39 +245,56 @@ def savemovie(data,data2=None,moviename='output.avi',norm=True,
             data_n = data_n[:,mxg:-mxg,:]
             data_c = data_c[:,mxg:-mxg,:]
         else:
-            x = np.arange(nx)
-            y = np.arange(nz)
+            x = xO + dx*np.arange(nx)
+            y = yO + dy*np.arange(nz)
             data_n = np.transpose(data_n,[0,2,1])
             data_c = np.transpose(data_c,[0,2,1])
            
             print x.shape,y.shape,data_n.shape
         
         os.system("rm "+cache+"*png")
-        m = plt.contourf(x,y,data_n[0,:,:],30,cmap=cmap)
+        #m = plt.contourf(x,y,data_n[0,:,:],30,cmap=cmap)
         # if overcontour:
-        c = plt.contour(x,y,data_c[0,:,:],8,colors='k')
+        #c = plt.contour(x,y,data_c[0,:,:],8,colors='k')
         for i in np.arange(size[0]):
+            fig = plt.figure()
             print i
             #m.set_data(data_n[i,:,:])
+            ax = fig.add_subplot(111)
+            #ax.annotate(str('%03d' % i),(xO +dx,yO+dy),fontsize = 20)
             m = plt.contourf(x,y,data_n[i,:,:],30,cmap=cmap)
             
             #c = plt.contour(data[i,:,:],8,colors='k')
             #c.set_data(data[i,:,:])
             if overcontour:
                
-                for coll in c.collections:
-                    try:
-                        plt.gca().collections.remove(coll)
-                    except:
-                        print 'not in this collection'
-                c = plt.contour(x,y,data_c[i,:,:],8,colors='k')
+                try:
+                    for coll in c.collections:
+                        try:
+                            plt.gca().collections.remove(coll)
+                        except:
+                            print 'not in this collection'
+                except:
+                    print 'i = 0'
 
+                c = plt.contour(x,y,data_c[i,:,:],8,colors='k')
+                #ax.annotate(str('%03d' % i),(xO +dx,yO+dy),fontsize = 20)
            
                 
-        
+            
+
             #fig.canvas.draw()         
             filename = cache+str('%03d' % i) + '.png'
-            plt.savefig(filename, dpi=100)
+            #textstr = r'$\T_ci$'+ '$=%.2f$'%(np.float(i))
+            # textstr ='hello'
+            # props = dict(boxstyle='square', facecolor='white')
+            # textbox = ax.text(xO, yO, textstr, 
+            #                   transform=ax.transAxes, fontsize=50,
+            #                   verticalalignment='top', bbox=props)
+            ax.annotate(str('%03d' % i),(xO +dx,yO+dy),fontsize = 20)
+            
+            plt.savefig(filename, dpi=200)
+            plt.close(fig)
             files.append(filename)
             #plt.clf()
         #plt.show()
@@ -281,7 +305,7 @@ def savemovie(data,data2=None,moviename='output.avi',norm=True,
     command = ('mencoder',
                'mf://'+cache+'*.png',
                '-mf',
-               'type=png:w=800:h=600:fps=10',
+               'type=png:w=800:h=600:fps=5',
                '-ovc',
                'lavc',
                '-lavcopts',
