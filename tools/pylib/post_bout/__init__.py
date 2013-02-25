@@ -30,7 +30,7 @@ try:
     import matplotlib 
     matplotlib.use('pdf') #savemovie must be called as a diff. sesssion
     
-    import gobject
+    #import gobject
     import numpy as np
 except ImportError:
     print "can't find the modules I need, you fail"
@@ -84,9 +84,3 @@ try:
     import ListDict
 except:
     print "No ListDict"
-
-try:
-    #from rotate_mp import rotate
-    from rotate2 import rotate
-except:
-    print "No rotate"

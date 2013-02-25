@@ -64,7 +64,8 @@ from basic_info import basic_info, fft_info
 
 def save(path='/home/cryosphere/BOUT/examples/Q3/data_short',
          savemovie=False,IConly=0,transform=False,fast = False,
-         debug = False,lowmem=False): 
+         debug = False,lowmem=False):
+    transform = False
     #lets collect the data
     print 'path :', path
     print 'in post_bout/post_bout.save'
@@ -102,7 +103,8 @@ def save(path='/home/cryosphere/BOUT/examples/Q3/data_short',
         if not lowmem:
             data[active] = collect(active,path=path,info=False)
         else:
-            data[active] = collect(active,xind=[2,2],path=path,info=False)
+            data[active] = collect(active,tind=[0,10],xind=[2,4],path=path,info=False)
+            data[active] = np.squeeze(data[active])
 
         if meta['nonlinear']['v'] == 'true':
             try:
@@ -120,9 +122,10 @@ def save(path='/home/cryosphere/BOUT/examples/Q3/data_short',
             
         # if debug:
         #     return data[active],data_r[active]
-
+  
     minIC = np.array([np.max(data[x][0,:,:,:]) for x in meta['evolved']])
-    minIC = min(minIC[np.array(meta['IC']).nonzero()])  
+    print 'minIC: ', minIC
+    #minIC = min(minIC[np.array(meta['IC']).nonzero()])  
     ICmodes =[]
     
     #cxx_info = read_cxx(path=path,boutcxx='2fluid.cxx.ref')

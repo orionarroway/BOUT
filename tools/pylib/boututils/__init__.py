@@ -26,3 +26,8 @@ try:
     from calculus import deriv, integrate
 except:
     print "No calculus"
+
+try:
+    from file_import import file_import
+except:
+    print "no file import"
