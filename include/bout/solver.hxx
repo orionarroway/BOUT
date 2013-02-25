@@ -58,7 +58,10 @@ using std::string;
 enum SOLVER_VAR_OP {LOAD_VARS, LOAD_DERIVS, SET_ID, SAVE_VARS, SAVE_DERIVS};
 
 /// RHS function pointer
-typedef int (*rhsfunc)(BoutReal);
+typedef int (*rhsfunc)(BoutReal t);
+
+/// User-supplier function to root
+typedef int (*RootFind)(BoutReal t);
 
 /// User-supplied preconditioner function
 typedef int (*PhysicsPrecon)(BoutReal t, BoutReal gamma, BoutReal delta);
@@ -97,6 +100,9 @@ class Solver {
   
   /// Specify a Jacobian (optional)
   virtual void setJacobian(Jacobian j) {}
+
+  // Specify a function to root along the way
+  virtual void setRootFind(RootFind g) {}
   
   /// Split operator solves
   virtual void setSplitOperator(rhsfunc fC, rhsfunc fD);
@@ -168,13 +174,18 @@ protected:
 
   bool has_constraints; ///< Can this solver.hxxandle constraints? Set to true if so.
   bool initialised; ///< Has init been called yet?
-
+  
+  bool find_root; //may not be needed
+  
   BoutReal simtime;  ///< Current simulation time
   int iteration; ///< Current iteration (output time-step) number
 
   int run_rhs(BoutReal t); ///< Run the user's RHS function
   int run_convective(BoutReal t); ///< Calculate only the convective parts
   int run_diffusive(BoutReal t); ///< Calculate only the diffusive parts
+  
+  int run_root(BoutReal t); /// Find a root using a given solvers built in functionality
+
   
   // Loading data from BOUT++ to/from solver
   void load_vars(BoutReal *udata);
@@ -185,6 +196,7 @@ protected:
   BoutReal max_dt; ///< Maximum internal timestep
  private:
   rhsfunc phys_run; ///< The user's RHS function
+  
   
   bool split_operator;
   rhsfunc phys_conv, phys_diff; ///< Convective and Diffusive parts (if split operator)
