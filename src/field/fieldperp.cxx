@@ -845,6 +845,7 @@ int FieldPerp::nblocks = 0;
 int FieldPerp::max_blocks = 0;
 BoutReal*** FieldPerp::block = (BoutReal***) NULL;
 
+
 void FieldPerp::allocData()
 {
   if(data != (BoutReal**) NULL)

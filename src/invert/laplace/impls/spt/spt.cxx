@@ -30,10 +30,11 @@
 #include <boutexception.hxx>
 #include <utils.hxx>
 #include <fft.hxx>
-
+#include <output.hxx>
 #include "spt.hxx"
 
 const FieldPerp LaplaceSPT::solve(const FieldPerp &b) {
+  //output<<mesh->ngz<<endl;
   return solve(b,b);
 }
 

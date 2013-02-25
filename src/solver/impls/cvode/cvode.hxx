@@ -62,6 +62,8 @@ class CvodeSolver : public Solver {
     void setPrecon(PhysicsPrecon f) {prefunc = f;}
 
     void setJacobian(Jacobian j) {jacfunc = j; }
+
+    void setRootFind(RootFind g) {rootfunc = g;}
     
     BoutReal getCurrentTimestep() { return hcur; }
 
@@ -74,7 +76,9 @@ class CvodeSolver : public Solver {
     void rhs(BoutReal t, BoutReal *udata, BoutReal *dudata);
     void pre(BoutReal t, BoutReal gamma, BoutReal delta, BoutReal *udata, BoutReal *rvec, BoutReal *zvec);
     void jac(BoutReal t, BoutReal *ydata, BoutReal *vdata, BoutReal *Jvdata);
-  private:
+    void root(BoutReal t, BoutReal *udata,BoutReal *gout);
+  
+ private:
     int NOUT; // Number of outputs. Specified in init, needed in run
     BoutReal TIMESTEP; // Time between outputs
     BoutReal hcur; // Current internal timestep
@@ -82,6 +86,8 @@ class CvodeSolver : public Solver {
     rhsfunc func; // RHS function
     PhysicsPrecon prefunc; // Preconditioner
     Jacobian jacfunc; // Jacobian - vector function
+    RootFind rootfunc; // 
+
     bool diagnose; // Output additional diagnostics
   
     N_Vector uvec; // Values

@@ -61,9 +61,12 @@ static int cvode_jac(N_Vector v, N_Vector Jv,
 		     realtype t, N_Vector y, N_Vector fy,
 		     void *user_data, N_Vector tmp);
 
-CvodeSolver::CvodeSolver() : Solver() {
-  has_constraints = false; ///< This solver doesn't have constraints
+static int cvode_root(realtype t, N_Vector u, realtype *gout,void *user_data);
 
+CvodeSolver::CvodeSolver() : Solver() {
+  has_constraints = false; ///< This solver doesn't have constraints, but we can use reuse the framework anyway
+
+  rootfunc = NULL; //one way to solve the general inversion problem
   prefunc = NULL;
   jacfunc = NULL;
 }
@@ -130,7 +133,7 @@ int CvodeSolver::init(rhsfunc f, bool restarting, int nout, BoutReal tstep) {
   int maxl;
   int mudq, mldq;
   int mukeep, mlkeep;
-  bool use_precon, use_jacobian;
+  bool use_precon, use_jacobian, use_rootfind;
   BoutReal start_timestep, max_timestep;
   bool adams_moulton, func_iter; // Time-integration method
   int MXSUB = mesh->xend - mesh->xstart + 1;
@@ -146,9 +149,11 @@ int CvodeSolver::init(rhsfunc f, bool restarting, int nout, BoutReal tstep) {
   options->get("maxl", maxl, 5);
   OPTION(options, use_precon,   false);
   OPTION(options, use_jacobian, false);
+  OPTION(options, use_rootfind, false);
   OPTION(options, max_timestep, -1.);
   OPTION(options, start_timestep, -1);
   OPTION(options, diagnose,     false);
+  
 
   int mxsteps; // Maximum number of steps to take between outputs
   options->get("mxstep", mxsteps, 500);
@@ -212,7 +217,7 @@ int CvodeSolver::init(rhsfunc f, bool restarting, int nout, BoutReal tstep) {
     CVodeSetMaxOrd(cvode_mem, mxorder);
   }
 
-  /// Newton method can include Preconditioners and Jacobian function
+  /// Newton method can include Preconditioners and Jacobian function and functions to root
   if(!func_iter) {
     output.write("\tUsing Newton iteration\n");
     /// Set Preconditioner
@@ -266,7 +271,14 @@ int CvodeSolver::init(rhsfunc f, bool restarting, int nout, BoutReal tstep) {
   }else {
     output.write("\tUsing Functional iteration\n");
   }
-
+  if (use_rootfind){
+    msg_stack.push("Using CVODE's root finder for algebraic constrain satisfaction");
+    //int root_flag = CVodeRootInit(cvode_mem,1,cvode_root); //or is it neq
+    int root_flag = CVodeRootInit(cvode_mem,local_N,cvode_root);
+  }
+  //msg_stack.push("Setting Jacobian-vector multiply");_stack.push("Setting Jacobian-vector multiply");
+  //root_flag = CVodeRootInit(cvode_mem,1,g)
+  //
 #ifdef CHECK
   msg_stack.pop(msg_point);
 #endif
@@ -365,6 +377,7 @@ BoutReal CvodeSolver::run(BoutReal tout) {
   pre_ncalls = 0.0;
 
   int flag = CVode(cvode_mem, tout, uvec, &simtime, CV_NORMAL);
+  //int flag = CVode(cvode_mem, tout, uvec, &simtime, CV_ROOT_RETURN);
 
   // Copy variables
   load_vars(NV_DATA_P(uvec));
@@ -384,6 +397,43 @@ BoutReal CvodeSolver::run(BoutReal tout) {
   return simtime;
 }
 
+
+/**************************************************************************
+ * Root finder G(y,t) = 0 => y(t)_soln
+ **************************************************************************/
+
+void CvodeSolver::root(BoutReal t,BoutReal *udata,BoutReal *gout) {
+#ifdef CHECK
+  int msg_point = msg_stack.push("Running ROOTfinder");
+#endif
+
+  int N = NV_LOCLENGTH_P(uvec);
+
+  if(rootfunc == NULL) {
+    // Identity (but should never happen)
+    output.write("NOT DEFINED\n");
+  }
+  load_derivs(udata);
+  
+  (*rootfunc)(t);
+  //(*jacfunc)(t);
+  //(*prefunc)(t, 1.0, 1.0);
+  // Save derivatives to dudata
+  save_vars(gout); //the variables solved for is in udata
+  
+  // output.write("N: %d\n",N);
+  // for(int i=0;i<N;i++)
+  //   gout[i] = 0;
+  //
+    // return;
+  
+   //gout[0] = 0;
+  
+  
+#ifdef CHECK
+  msg_stack.pop(msg_point);
+#endif
+}
 /**************************************************************************
  * RHS function du = F(t, u)
  **************************************************************************/
@@ -394,7 +444,7 @@ void CvodeSolver::rhs(BoutReal t, BoutReal *udata, BoutReal *dudata) {
 #endif
 
   // Load state from udata
-  load_vars(udata);
+  load_vars(udata); //from solver to BOUT
 
   // Get the current timestep
   // Note: CVodeGetCurrentStep updated too late in older versions
@@ -499,6 +549,32 @@ static int cvode_rhs(BoutReal t,
 
   return 0;
 }
+
+
+
+
+static int cvode_root(realtype t,N_Vector u,realtype *gout, void *user_data){
+  
+  BoutReal *udata = NV_DATA_P(u);   ///< System state
+  //BoutReal *gout = NV_DATA_P(gout);  ///< Jacobian*vector output
+  CvodeSolver *s = (CvodeSolver*) user_data;
+  
+  s->root(t,udata,gout);
+  //gout[0] = 0;
+  return 0;
+  
+  
+} 
+// static int g(realtype t, N_Vector y, realtype *gout, void *user_data)
+// {
+//   realtype y1, y3;
+
+//   y1 = Ith(y,1); y3 = Ith(y,3);
+//   gout[0] = y1 - RCONST(0.0001);
+//   gout[1] = y3 - RCONST(0.01);
+
+//   return(0);
+// }
 
 /// RHS function for BBD preconditioner
 static int cvode_bbd_rhs(CVINT Nlocal, BoutReal t, 
