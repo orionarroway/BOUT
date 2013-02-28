@@ -818,6 +818,7 @@ class LinResDraw(LinRes):
         Nplots = self.nrun
 
         colors = ['b','g','r','c','m','y','k','b','g','r','c','m','y','k']
+        styles = ['^','s']
         
         fig1 = plt.figure()
         
