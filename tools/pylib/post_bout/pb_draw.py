@@ -181,11 +181,13 @@ class LinResDraw(LinRes):
             maxZ = min(s.maxN)
             modelist = []
             [modelist.append([q,p+1]) for p in range(maxZ-1)]
-        print q,'in plotgamma'
+            print modelist
+            print q,'in plotgamma'
+        
         s = subset(s.db,'mn',modelist)
          
         xrange = s.nx/2-2
-        
+            
         xrange = [s.nx/2,s.nx/2+xrange]
       
  
@@ -196,16 +198,14 @@ class LinResDraw(LinRes):
         
         kfactor = np.mean(s.k_r[:,1,s.nx/2]/s.k[:,1,s.nx/2]) #good enough for now
   
-        parhandles.append(canvas.errorbar(k[:,1,s.nx/2],
-                                          y[:,0,s.nx/2],
-                                          yerr=y[:,1,s.nx/2],
-                                          fmt=colors[q]))
+        print k[:,1,s.nx/2].shape, y[:,0,s.nx/2].shape, len(colors), ownpage#,k[:,1,s.nx/2],y[:,0,s.nx/2]
         
-        # parhandles.append(canvas.errorbar(k[:,1,s.nx/2],
-        #                                y[:,0,s.nx/2],
-        #                                yerr=y[:,1,s.nx/2],
-        #                                fmt=colors[q]))
-
+        parhandles.append(canvas.errorbar(np.squeeze(k[:,1,s.nx/2]),
+                                             np.squeeze(y[:,0,s.nx/2]),
+                                             yerr= np.squeeze(y[:,1,s.nx/2]),
+                                             fmt=colors[q]))
+        
+  
         
 
         parlabels.append("m "+str(q))
@@ -926,7 +926,7 @@ class LinResDraw(LinRes):
             t0=2
             if clip == True: 
                 t0 = round(s.nt[0]/3)
-            y = data[imax,t0:,xi_max]
+            y = np.squeeze(data[imax,t0:,xi_max])
             x = np.array(range(y.size))
          
         
@@ -935,7 +935,7 @@ class LinResDraw(LinRes):
             label = str([round(elem,3) for elem in s.MN[imax]])+ str(s.mn[imax])+' at x= '+str(xi_max)+' ,'+str(round(s.gamma[imax,2,xi_max]/s.gamma[imax,0,xi_max],3))+'%  '+str(round(s.gamma[imax,0,xi_max],4))
 
             short_label = str(dz)
-            print short_label
+            print short_label,x.shape,y.shape
             allcurves.plot(x,y,'.',c=cm.jet(1.*k/len(x)),
                            label=label) 
          #print len(x), k*len(x)/(Nplots+2),s.nrun
@@ -1040,7 +1040,7 @@ class LinResDraw(LinRes):
             for i in range(s.nmodes): 
             #out = mode[mode.ny/2,:]
             #print i,s.Rxynorm.shape,s.ny
-                x = s.Rxynorm[i,:,s.ny/2]
+                x = np.squeeze(s.Rxynorm[i,:,s.ny/2])
                 y = data[i,s.nt[0]-1,:]
             
                 handles.append(ax.plot(x,y,c=cm.jet(1.*k/len(x))))
@@ -1060,10 +1060,11 @@ class LinResDraw(LinRes):
             ax.set_title(str(j),fontsize=10)
          
          
-            x = s.Rxynorm[imax,:,s.ny/2]
+            x = np.squeeze(s.Rxynorm[imax,:,s.ny/2])
             y = data[imax,s.nt[0]-1,:]
          #allcurves.plot(x,y,c= colors[k])
             allcurves.plot(x,y,c=cm.jet(.1*k/len(x)))
+            print k
             k= k+1
          
         fig2.savefig(pp, format='pdf')  
@@ -1291,17 +1292,22 @@ class LinResDraw(LinRes):
       
         for i,elem in enumerate(self.meta):
             #if type(self.meta[elem]) != type(np.array([])):
-                
+            
+            print elem, type(self.meta[elem])
+            
+
             if type(self.meta[elem])== type({}):
+                print '{}'
                 data = np.array(self.meta[elem]['v'])
                 unit_label = str(self.meta[elem]['u'])
             else:
                 data = np.array(self.meta[elem])
                 unit_label = ''
 
-            xaxis = self.meta['Rxy']['v'][:,self.ny/2]
+            xaxis = np.squeeze(self.meta['Rxy']['v'][:,self.ny/2])
+            
             if data.shape == (self.nx,self.ny):
-                datastr = data[:,self.ny/2]
+                datastr = np.squeeze(data[:,self.ny/2])
             #metasection.append(graphout('stuff',datastr,xaxis=xaxis))  
             #metasection.append(RL_Plot(datastr,xaxis))
                 
@@ -1311,8 +1317,12 @@ class LinResDraw(LinRes):
                 datastr = data
             #metasection.append(graphout('stuff',datastr,xaxis=xaxis))
                 #metasection.append(RL_Plot(datastr,xaxis,linelabel=str(elem)))
+            elif data.shape == (1,):
+                data = data[0]
+                metasection.append(header(str(elem)+': '+str(data)+ ' '+ unit_label, 
+                                          sep=0.1, style=ParaStyle))
             else:
-                print elem, data
+                print elem, data,data.shape
                 metasection.append(header(str(elem)+': '+str(data)+ ' '+ unit_label, 
                                           sep=0.1, style=ParaStyle))
                    
@@ -1325,7 +1335,7 @@ class LinResDraw(LinRes):
       #print self.cxx
         cxxsection.append(header(self.cxx[0], sep=0.1, style=ParaStyle))
         cxxsrc = KeepTogether(cxxsection)
-
+        
         Elements.append(cxxsrc)
       # for i,elem in enumerate(self.cxx):
       #    if type(self.meta[elem])== type({}):

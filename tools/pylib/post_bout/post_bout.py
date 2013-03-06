@@ -89,7 +89,7 @@ def save(path='/home/cryosphere/BOUT/examples/Q3/data_short',
 
    
     all_modes = []
-    print meta['evolved']
+    print 'evolved: ' ,meta['evolved']
     print meta['collected']
 
     #pick up some derived variabales as needed
@@ -100,6 +100,7 @@ def save(path='/home/cryosphere/BOUT/examples/Q3/data_short',
         print path, active
         chunk = 10
         if not lowmem:
+            print active
             data[active] = collect(active,path=path,info=False)
         else:
             data[active] = collect(active,xind=[2,2],path=path,info=False)

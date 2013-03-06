@@ -111,12 +111,15 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     print filepath
     inp = read_inp(path=path,boutinp=inpfile)
     inp = parse_inp(inp) #inp file
+    print path
     outinfo = file_import(path+'/BOUT.dmp.0.nc') #output data
     
     try:
        print path
        cxxinfo = no_comment_cxx(path=path,boutcxx='physics_code.cxx.ref')
-       evolved = get_evolved_cxx(cxxinfo)
+       #evolved = get_evolved_cxx(cxxinfo)
+       fieldkeys = get_evolved_cxx(cxxinfo)
+       fieldkeys = ['['+elem+']' for elem  in fieldkeys]
     except:
        print 'cant find the cxx file'
     
@@ -141,15 +144,17 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     #print len(IC)
     #print IC
        
-    #evolved = []
+    evolved = []
     collected =[]
     ICscale = []
    
-    fieldkeys = ['[Ni]','[Te]','[Ti]','[Vi]','[rho]',
-                 '[Ajpar]','[Apar]','[vEBx]','[vEBy]','[vEBz]',
-                 '[jpar]','[phi]']
+    # fieldkeys = ['[Ni]','[Te]','[Ti]','[Vi]','[rho]',
+    #              '[Ajpar]','[Apar]','[vEBx]','[vEBy]','[vEBz]',
+    #              '[jpar]','[phi]']
     
-    
+    #construct fieldkeys from cxx info
+    #fieldkeys = ['['+x+']' for x in evolved]
+    #fieldkeys = evolved
 
     #just look ahead and see what 3D fields have been output
     available = np.array([str(x) for x in outinfo])
@@ -161,22 +166,23 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     defaultIC = float(inp['[All]'].get('scale',0.0))
 
     # print inp.keys()
-
+    
     #figure out which fields are evolved
-
+    print fieldkeys
+    
     for section in inp.keys(): #loop over section keys 
-       # print 'section: ', section
-       # if section in fieldkeys: #pick the relevant sections
-       #    #print section
-       #    #print type(inp[section].get('evolve','True'))
-       #    print (inp[section].get('evolve','True')).lower().strip()
-       #    if (inp[section].get('evolve','True').lower().strip() == 'true') and section[1:-1] in available :
-       #        print 'ok reading'
-       #        evolved.append(section.strip('[]'))
-       #        ICscale.append(float(inp[section].get('scale',defaultIC)))
+       print 'section: ', section
+       if section in fieldkeys: #pick the relevant sections
+          print section
+          #print inp[section].get('evolve','True')
+          #rint (inp[section].get('evolve','True')).lower().strip()
+          if (inp[section].get('evolve','True').lower().strip() == 'true'):# and section[1:-1] in available :
+             print 'ok reading'
+             evolved.append(section.strip('[]'))
+             ICscale.append(float(inp[section].get('scale',defaultIC)))
             
-          if inp[section].get('collect','False').lower().strip() == 'true':
-             collected.append(section.strip('[]'))
+       if inp[section].get('collect','False').lower().strip() == 'true':
+          collected.append(section.strip('[]'))
     
         
     
@@ -214,7 +220,7 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     meta['IC']= np.array(ICscale)
     d = {}
 
-    print evolved
+    print 'evolved: ',evolved
 
     # read meta data from .inp file, this is whre most metadata get written
     for section in inp.keys():
@@ -239,7 +245,10 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     #static_fields = tmp2
     
     #print availkeys
-    print meta.keys()
+    # print meta.keys()
+    #print IC.variables.keys()
+    # print tmp1
+    # print tmp2
     
 
     for elem in static_fields:
@@ -247,6 +256,14 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
        meta[elem] = ValUnit(IC.variables[elem][:]*norms[elem].v,norms[elem].u)
        d[elem] = np.array(IC.variables[elem][:]*norms[elem].v)
     
+    for elem in IC.variables:
+       if elem not in meta:
+          if elem in norms.keys():
+             meta[elem] = ValUnit(IC.variables[elem][:]*norms[elem].v,norms[elem].u)
+             d[elem] = np.array(IC.variables[elem][:]*norms[elem].v)
+          else:
+            meta[elem] = IC.variables[elem][:]
+            d[elem] = IC.variables[elem][:] 
        
     #print d.keys()
 
