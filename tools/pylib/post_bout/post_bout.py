@@ -103,7 +103,7 @@ def save(path='/home/cryosphere/BOUT/examples/Q3/data_short',
         if not lowmem:
             data[active] = collect(active,path=path,info=False)
         else:
-            data[active] = collect(active,tind=[0,10],xind=[2,4],path=path,info=False)
+            data[active] = collect(active,xind=[2,5],path=path,info=False)
             data[active] = np.squeeze(data[active])
 
         if meta['nonlinear']['v'] == 'true':
@@ -123,7 +123,7 @@ def save(path='/home/cryosphere/BOUT/examples/Q3/data_short',
         # if debug:
         #     return data[active],data_r[active]
   
-    minIC = np.array([np.max(data[x][0,:,:,:]) for x in meta['evolved']])
+    minIC = np.array([np.max(data[x][0,::]) for x in meta['evolved']])
     print 'minIC: ', minIC
     #minIC = min(minIC[np.array(meta['IC']).nonzero()])  
     ICmodes =[]
@@ -273,10 +273,36 @@ def save(path='/home/cryosphere/BOUT/examples/Q3/data_short',
     filename_db = path+'/post_bout.db'
     
     
+    
     pickle_db = open(filename_db,'wb')
 
+    # print len(allmodes_db)
+    # print filename_db
+    # print allmodes_db.__class__
+    # print allmodes_db[0].keys()
+    # data1 = {'a': [1, 2.0, 3, 4+6j],
+    #          'b': ('string', u'Unicode string'),
+    #          'c': None}
+    # print data1.__class__, allmodes_db[0].__class__
+
+    
+    #bad_keys= ['meta']
+ 
+    # print allmodes_db[0]['nx']
+    print meta.keys()
+    #print allmodes_db[0]['meta']
+    #bad_keys= ['meta', 'ny', 'field']
+
+    data1 = {}
+    for key,value in meta.iteritems():
+        print key, ': ',value.__class__
+
+    for key,value in allmodes_db[0].iteritems():
+        #if key not in bad_keys:
+        data1[key] = value
+    #data1 = allmodes_db[0]
     pickle.dump(allmodes_db,pickle_db) #mode info
-    pickle.dump(output,pickle_db) #average and meta info 
+    #pickle.dump(data1,pickle_db) #average and meta info 
 
     #pickle.dump(output,pickle_db) #can I do this?
 

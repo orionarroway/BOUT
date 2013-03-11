@@ -260,8 +260,9 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
 
    for elem in other_fields:
       print 'elem: ',elem
-      meta[elem] = IC.variables[elem]
-      d[elem] = IC.variables[elem]
+      if IC.variables[elem].__class__ is not 'netCDF4.Variable':
+            meta[elem] = IC.variables[elem]
+            d[elem] = IC.variables[elem]
 
       
    
@@ -270,13 +271,13 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     #if case some values are missing   
    default = {'bmag':1,'Ni_x':1,'NOUT':100,'TIMESTEP':1,
               'MZ':32,'AA':1,'Zeff':ValUnit(1,''),'ZZ':1,
-              'zlowpass':0.0,'transport':False}
+              'zlowpass':0.0,'transport':False,'Te_x':1}
    diff = set(default.keys()).difference(set(d.keys()))
        
    for elem in diff:
-       #print 'diff: ',elem
-      meta[elem] = default[elem]
-      d[elem] = np.array(default[elem])
+         print 'diff: ',elem
+         meta[elem] = default[elem]
+         d[elem] = np.array(default[elem])
       
     #print meta.keys()
     #print d.keys()
@@ -290,9 +291,10 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
    else:
       meta['maxZ'] = 5
        
-   # meta['nx'] = nx
-   # meta['ny']= ny
+   #meta['nx'] = meta['nx']
+   #meta['ny']=  meta['ny'][0]
 
+   
    meta['dt'] = meta['TIMESTEP'] 
     
     
@@ -374,8 +376,18 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
          meta[elem] = {'u':meta[elem].u,'v':meta[elem].v}
     
    
-  
+   netcdftype = meta['nx'].__class__ 
+
    print 'meta: ', type(meta)
+   for key,value in meta.iteritems():
+         if isinstance(value,netcdftype):
+               meta[key] = np.array(value[:])
+               print key,meta[key].shape
+               if len(meta[key].shape) is not 1:
+                     if np.std(meta[key]) is 0:
+                           meta[key] = np.mean(meta[key])
+                           print 'fixed to ', meta[key].shape, meta[key]
+
    return meta
 
     # meta['DZ'] =inp['[main]']['ZMAX']#-b['[main]']['ZMIN']
