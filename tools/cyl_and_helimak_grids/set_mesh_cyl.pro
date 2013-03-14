@@ -53,6 +53,17 @@ pro CLM_grid,filename=filename
   
 end
 
+pro AhmetSOL,grid_size = N,filename = filename
+  if (not keyword_set(grid_size)) then N = 4
+
+  mxsub = 2
+
+  Nz = 2^N
+  Nr = 2^N + mxsub*2
+
+  gridname = ["Ahmet_",string(2^N),"x",string(2^N),".nc"]
+  
+
 pro Helimak_grid,expr_prof = expr_prof,grid_size = N,filename = filename
 
   
