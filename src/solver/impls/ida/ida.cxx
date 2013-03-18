@@ -37,6 +37,8 @@
 
 #include <ida/ida.h>
 #include <ida/ida_spgmr.h>
+#include <ida/ida_spbcgs.h>
+#include <ida/ida_sptfqmr.h>
 #include <ida/ida_bbdpre.h>
 #include <nvector/nvector_parallel.h>
 #include <sundials/sundials_dense.h>
@@ -174,9 +176,13 @@ IdaSolver::~IdaSolver()
 
   IDASetMaxNumSteps(idamem, mxsteps);
 
-  // Call IDASpgmr to specify the IDA linear solver IDASPGMR
+  //Call IDASpgmr to specify the IDA linear solver IDASPGMR
   if( IDASpgmr(idamem, maxl) )
     bout_error("ERROR: IDASpgmr failed\n");
+  // if( IDASpbcg(idamem, maxl) )
+  //   bout_error("ERROR: IDASpgmr failed\n");
+  // if( IDASpbcg(idamem, maxl) )
+  //   bout_error("ERROR: IDASpgmr failed\n");
 
   if(use_precon) {
     if(prefunc == NULL) {
@@ -272,12 +278,13 @@ BoutReal IdaSolver::run(BoutReal tout) {
 
   pre_Wtime = 0.0;
   pre_ncalls = 0.0;
-
+  output<<"\n IDAsolve \n";
   int flag = IDASolve(idamem, tout, &simtime, uvec, duvec, IDA_NORMAL);
+  output<<"\n IDAsolve done \n";
 
   // Copy variables
   load_vars(NV_DATA_P(uvec));
-
+  
   // Call rhs function to get extra variables at this time
   run_rhs(simtime);
   
@@ -369,7 +376,7 @@ void IdaSolver::pre(BoutReal t, BoutReal cj, BoutReal delta, BoutReal *udata, Bo
  * PRIVATE FUNCTIONS
  **************************************************************************/
 
-/// Perform an operation at a given (jx,jy) location, moving data between BOUT++ and CVODE
+/// Perform an operation at a given (jx,jy) location, moving data between BOUT++ and IDA
 void IdaSolver::loop_vars_op(int jx, int jy, BoutReal *udata, int &p, SOLVER_VAR_OP op)
 {
   BoutReal **d2d, ***d3d;

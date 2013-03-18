@@ -125,25 +125,21 @@ def read_log(path='.',logname='status.log'):
    return logdict
    
 def metadata(inpfile='BOUT.inp',path ='.',v=False):    
-   #outinfo - from sim
-   #IC - from input grid - may not be there
-   #inp - BOUT.inp
 
-   #collectes data from, simulation outfiles, inp file, the input grid
-   # and the source code
-   #there is quite  a bit of redudancy between these sources . .
-   filepath = path+'/'+inpfile
-   print filepath
-   inp = read_inp(path=path,boutinp=inpfile) #input file
-   inp = parse_inp(inp) #inp file
-   outinfo = file_import(path+'/BOUT.dmp.0.nc') #output data
+    filepath = path+'/'+inpfile
+    print filepath
+    inp = read_inp(path=path,boutinp=inpfile)
+    inp = parse_inp(inp) #inp file
+    print path
+    outinfo = file_import(path+'/BOUT.dmp.0.nc') #output data
     
-   #get meta data from the SOURCECODE - CXXINFO
-   try:
-      print path
-      cxxinfo = no_comment_cxx(path=path,boutcxx='physics_code.cxx.ref')
-      evolved = get_evolved_cxx(cxxinfo) #all the possible evolved fields
-   except:
+    try:
+       print path
+       cxxinfo = no_comment_cxx(path=path,boutcxx='physics_code.cxx.ref')
+       #evolved = get_evolved_cxx(cxxinfo)
+       fieldkeys = get_evolved_cxx(cxxinfo)
+       fieldkeys = ['['+elem+']' for elem  in fieldkeys]
+    except:
        print 'cant find the cxx file'
     
     
@@ -170,39 +166,48 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
          print 'Fail to load the grid file'
     #print IC
 
-   collected =[]
-   ICscale = []
-   
-   #fieldkeys shoudl really be populated from cxx
-   fieldkeys = ['[Ni]','[Te]','[Ti]','[Vi]','[rho]',
-                '[Ajpar]','[Apar]','[vEBx]','[vEBy]','[vEBz]',
-                '[jpar]','[phi]']
-   
-    
 
-   #SELECT metadata from the OUPUT DATA -  
-   available = np.array([str(x) for x in outinfo])
-   a = np.array([(len(outinfo[x].shape) ==4) for x in available])
-   available = available[a]
- 
-   defaultIC = float(inp['[All]'].get('scale',0.0))
-
-   evolved = []
-   #SETUP metadata from the INPUT FILE
-   for section in inp.keys(): #loop over section keys 
-       # print 'section: ', section
-       # if section in fieldkeys: #pick the relevant sections
-      print section
-      #print inp[section].get('evolve','True')
-       #    print (inp[section].get('evolve','True')).lower().strip()
-      if (inp[section].get('evolve','True').lower().strip() == 'true') and section[1:-1] in available :
-         print 'ok will collect ', section, section.strip('[]')
-         evolved.append(section.strip('[]'))
-         #ICscale.append(float(inp[section].get('scale',defaultIC)))
        
-      #READ collected 4D field metadata
-      if inp[section].get('collect','False').lower().strip() == 'true':
-         collected.append(section.strip('[]'))
+    evolved = []
+    collected =[]
+    ICscale = []
+   
+    # fieldkeys = ['[Ni]','[Te]','[Ti]','[Vi]','[rho]',
+    #              '[Ajpar]','[Apar]','[vEBx]','[vEBy]','[vEBz]',
+    #              '[jpar]','[phi]']
+    
+    #construct fieldkeys from cxx info
+    #fieldkeys = ['['+x+']' for x in evolved]
+    #fieldkeys = evolved
+
+    #just look ahead and see what 3D fields have been output
+    available = np.array([str(x) for x in outinfo])
+    a = np.array([(len(outinfo[x].shape) ==4) for x in available])
+    available = available[a]
+    
+    
+    
+    defaultIC = float(inp['[All]'].get('scale',0.0))
+
+    # print inp.keys()
+    
+    #figure out which fields are evolved
+    print fieldkeys
+    
+    for section in inp.keys(): #loop over section keys 
+       print 'section: ', section
+       if section in fieldkeys: #pick the relevant sections
+          print section
+          #print inp[section].get('evolve','True')
+          #rint (inp[section].get('evolve','True')).lower().strip()
+          if (inp[section].get('evolve','True').lower().strip() == 'true'):# and section[1:-1] in available :
+             print 'ok reading'
+             evolved.append(section.strip('[]'))
+             ICscale.append(float(inp[section].get('scale',defaultIC)))
+            
+       if inp[section].get('collect','False').lower().strip() == 'true':
+          collected.append(section.strip('[]'))
+
              
    try:         
       if inp['[physics]'].get('transport','False').lower().strip() == 'true':
@@ -214,58 +219,67 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
   
    meta = OrderedDict()
 
-   meta['evolved'] = evolved
-   meta['collected'] = collected
-   meta['IC']= np.array(ICscale)
-   d = {}
 
-   print evolved
+    #def decode_valunit(d):
+       
+    
+    def ToFloat(metaString):
+       try:
+          return float(metaString)
+       except ValueError:
+          return metaString
+    
+    #meta['evolved'] = ValUnit(evolved,'')
+    meta['evolved'] = evolved
+    meta['collected'] = collected
+    meta['IC']= np.array(ICscale)
+    d = {}
 
-    #READ metadata from INP
-   for section in inp.keys():
-      if (('evolve' not in inp[section]) and ('first' not in inp[section])): #hacky way to exclude some less relevant metadata
-         for elem in inp[section].keys():
-            meta[elem] = ValUnit(ToFloat(inp[section][elem]))
-            d[elem] = np.array(ToFloat(inp[section][elem]))
+    print 'evolved: ',evolved
+
+    # read meta data from .inp file, this is whre most metadata get written
+    for section in inp.keys():
+        if (('evolve' not in inp[section]) and ('first' not in inp[section])): #hacky way to exclude some less relevant metadata
+           for elem in inp[section].keys():
+              meta[elem] = ValUnit(ToFloat(inp[section][elem]))
+              d[elem] = np.array(ToFloat(inp[section][elem]))
               
-    #DEFINE nomralization values
-   norms = {'Ni0':ValUnit(1.e14,'cm^-3'),'bmag':ValUnit(1.0e4,'gauss'),
-            'Ni_x':ValUnit(1.e14,'cm^-3'),
-            'Te_x':ValUnit(1.0,'eV'),'Ti_x':ValUnit(1.0,'eV'),'Rxy':ValUnit(1,'m'),
-            'Bxy':ValUnit(1.0e4,'gauss'),'Bpxy':ValUnit(1.0e4,'gauss'),
-            'Btxy':ValUnit(1.0e4,'gauss'),'Zxy':ValUnit(1,'m'),
-            'dlthe':ValUnit(1,'m'),'dx':ValUnit(1,'m'),'hthe0':ValUnit(1,'m')}
+    #read in some values from the grid(IC) and scale them as needed
+    norms = {'Ni0':ValUnit(1.e14,'cm^-3'),'bmag':ValUnit(1.0e4,'gauss'),
+             'Ni_x':ValUnit(1.e14,'cm^-3'),
+             'Te_x':ValUnit(1.0,'eV'),'Ti_x':ValUnit(1.0,'eV'),'Rxy':ValUnit(1,'m'),
+             'Bxy':ValUnit(1.0e4,'gauss'),'Bpxy':ValUnit(1.0e4,'gauss'),
+             'Btxy':ValUnit(1.0e4,'gauss'),'Zxy':ValUnit(1,'m'),
+             'dlthe':ValUnit(1,'m'),'dx':ValUnit(1,'m'),'hthe0':ValUnit(1,'m')}
 
-   #CREATE a list of all OUTPUT fields in addition the main dynamic ones
-   availkeys = np.array([str(x) for x in outinfo])
-   tmp1 = np.array([x for x in availkeys])
-   tmp2 = np.array([x for x in tmp1 if x not in available]) #everything but 4D
-   static_fields = np.array([x for x in tmp2 if x in norms.keys()])
-    #ADD to meta
-   for elem in static_fields:
-      print 'elem: ',elem
-      meta[elem] = ValUnit(IC.variables[elem][:]*norms[elem].v,norms[elem].u)
-      d[elem] = np.array(IC.variables[elem][:]*norms[elem].v)
+    availkeys = np.array([str(x) for x in outinfo])
+    tmp1 = np.array([x for x in availkeys])
+    #b = np.array([x if x not in available for x in a])
+    tmp2 = np.array([x for x in tmp1 if x not in available])
+    static_fields = np.array([x for x in tmp2 if x in norms.keys()])
+    #static_fields = tmp2
+    
+    #print availkeys
+    # print meta.keys()
+    #print IC.variables.keys()
+    # print tmp1
+    # print tmp2
+    
 
-   #CREATE list of all normalized fields from the grid
-   ICkeys = np.array([str(x) for x in IC.variables.keys()])
-   print ICkeys
-   geo_fields = np.array([x for x in ICkeys if x in norms.keys()])
-   other_fields =  np.array([x for x in ICkeys if x not in norms.keys()])
+    for elem in static_fields:
+       print 'elem: ',elem
+       meta[elem] = ValUnit(IC.variables[elem][:]*norms[elem].v,norms[elem].u)
+       d[elem] = np.array(IC.variables[elem][:]*norms[elem].v)
+    
+    for elem in IC.variables:
+       if elem not in meta:
+          if elem in norms.keys():
+             meta[elem] = ValUnit(IC.variables[elem][:]*norms[elem].v,norms[elem].u)
+             d[elem] = np.array(IC.variables[elem][:]*norms[elem].v)
+          else:
+            meta[elem] = IC.variables[elem][:]
+            d[elem] = IC.variables[elem][:] 
 
-   for elem in geo_fields:
-      print 'elem: ',elem
-      meta[elem] = ValUnit(IC.variables[elem][:]*norms[elem].v,norms[elem].u)
-      d[elem] = np.array(IC.variables[elem][:]*norms[elem].v)
-
-   for elem in other_fields:
-      print 'elem: ',elem
-      if IC.variables[elem].__class__ is not 'netCDF4.Variable':
-            meta[elem] = IC.variables[elem]
-            d[elem] = IC.variables[elem]
-
-      
-   
     #print d.keys()
 
     #if case some values are missing   
@@ -390,19 +404,3 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
 
    return meta
 
-    # meta['DZ'] =inp['[main]']['ZMAX']#-b['[main]']['ZMIN']
-    # AA = inp['[2fluid]']['AA']
-    # Ni0 = IC.variables['Ni0'][:]*1.e14
-    # bmag = IC.variables['bmag'][:]*1.e4 #to cgs
-    # Ni_x = IC.variables['Ni_x'][:]*1.e14 # cm^-3
-    # Te_x
-    
-    # rho_s = 1.02e2*sqrt(AA.v*Te_x.v)/ZZ.v/bmag.v
-    # rho_i
-    # rho_e 
-    
-    
-
-    
-
-   #for i,val in enumerate(boutlist):

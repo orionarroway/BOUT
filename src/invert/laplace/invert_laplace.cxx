@@ -65,6 +65,8 @@ Laplacian::Laplacian(Options *options) {
   BoutReal filter; ///< Fraction of Z modes to filter out. Between 0 and 1
   OPTION(options, filter, 0.2);
   int ncz = mesh->ngz-1;
+ 
+  //int ncz = mesh->ngy;
   // convert filtering into an integer number of modes
   maxmode = ROUND((1.0 - filter) * ((double) (ncz / 2)));
   // Can be overriden by max_mode option

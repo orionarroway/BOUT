@@ -320,6 +320,9 @@ int BoutMesh::load() {
   ///////////////// DIFFERENTIAL GEOMETRY /////////////////
   
   // Diagonal components of metric tensor g^{ij} (default to 1)
+  // get(g11, "g11", 1.0/(dx[1][1]*dx[1][1]));
+  // get(g22, "g22", 1.0/(dy[1][1]*dy[1][1]));
+  // get(g33, "g33", 1.0/(dz*dz));
   get(g11, "g11", 1.0);
   get(g22, "g22", 1.0);
   get(g33, "g33", 1.0);

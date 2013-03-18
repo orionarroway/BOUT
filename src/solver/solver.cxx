@@ -404,7 +404,10 @@ int Solver::init(rhsfunc f, bool restarting, int nout, BoutReal tstep) {
     throw BoutException("ERROR: Solver is already initialised\n");
 
   phys_run = f;
-
+  
+  // if(g != NULL)
+  //   phys_root = g;
+  
   output.write("Initialising solver\n");
 
   options->get("archive", archive_restart, -1);
@@ -763,7 +766,7 @@ void Solver::load_derivs(BoutReal *udata)
     v3d[i].F_var->covariant = v3d[i].covariant;
 }
 
-// This function only called during initialisation
+// This function only called during initialisation - no its not
 int Solver::save_vars(BoutReal *udata)
 {
   unsigned int i;
@@ -835,6 +838,8 @@ void Solver::setSplitOperator(rhsfunc fC, rhsfunc fD)
   phys_diff = fD;
 }
 
+
+
 int Solver::run_rhs(BoutReal t) {
   int status;
   
@@ -902,6 +907,7 @@ int Solver::run_diffusive(BoutReal t) {
   return status;
 }
 
+
 int Solver::run_func(BoutReal t, rhsfunc f) {
   int status = (*f)(t);
 
@@ -947,6 +953,7 @@ int Solver::run_func(BoutReal t, rhsfunc f) {
   
   return status;
 }
+
 
 bool Solver::varAdded(const string &name) {
   for(vector< VarStr<Field2D> >::iterator it = f2d.begin(); it != f2d.end(); it++) {

@@ -50,7 +50,7 @@ const Field2D Grad_par(const Field2D &var, CELL_LOC outloc, DIFF_METHOD method)
   int msg_pos = msg_stack.push("Grad_par( Field2D )");
 #endif
 
-
+ 
   Field2D result = DDY(var)/sqrt(mesh->g_22); // NOTE: 2D functions not implemented yet
 
 

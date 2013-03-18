@@ -22,7 +22,7 @@
 #endif
 
 // Solver object
-Solver *solver;    // Interface to PVODE
+Solver *solver;    // Interface to a generic SOLVER
 
 /*!************************************************************************
  * Add variables to be solved
@@ -85,6 +85,18 @@ bool bout_constrain(Field3D &var, Field3D &F_var, const char *name) {
 
   return true;
 }
+
+/*********
+Add field to find as a root
+*********/
+// bool bout_rootfind(Field3D &var, Field3D &F_var, const char *name) {
+//   if (!solver->constraints()) return false; // Doesn't support constraints
+
+//   // Add to solver
+//   solver->constraint(var, F_var, name);
+
+//   return true;
+// }
 
 // Physics functions
 int physics_init(bool restarting);

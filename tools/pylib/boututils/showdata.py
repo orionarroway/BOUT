@@ -171,7 +171,8 @@ def showdata(data, scale=True, loop=False,movie=False):
 def savemovie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
               moviename='output.avi',norm=False,
               overcontour=True,aspect='auto',meta=None,mxg=2,
-              cache='/tmp/',hd=False,nlevels = 9,removeZero=True):
+              cache='/tmp/',hd=False,nlevels = 9,removeZero=True,
+              t_array=None):
     
     size = data.shape
     ndims = len(size)
@@ -317,8 +318,14 @@ def savemovie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
             # textbox = ax.text(xO, yO, textstr, 
             #                   transform=ax.transAxes, fontsize=50,
             #                   verticalalignment='top', bbox=props)
-            ax.annotate(str('%03d' % i),(xO +dx,yO+dy),fontsize = 20)
-            
+
+            if t_array is not None:
+                try:
+                    ax.annotate(str('%03d' % t_array[i]),(xO +dx,yO+dy),fontsize = 20)
+
+                except:
+                    ax.annotate(str('%03d' % i),(xO +dx,yO+dy),fontsize = 20)
+                                
             plt.savefig(filename, dpi=200)
             plt.close(fig)
             files.append(filename)

@@ -254,6 +254,7 @@ def fft_info(data,user_peak,dimension=[3,4],rescale=False,wavelet=False,show=Fal
         sig1 = sig*np.sqrt(1.0/(nt * t.var()))
         nt = np.array(nt)
         print 'shapes ', nt.shape, nt, lnamp.shape, res.shape, gamma_est
+        #print r
         res = 1 - res/(nt*lnamp.var(0)) #nx 
         res[0:2] = 0
         res[-2:] = 0

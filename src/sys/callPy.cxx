@@ -43,22 +43,28 @@ int callPy(int argc, char *argv[])
 
   MPI_Comm_size(BoutComm::get(), &size);
   MPI_Comm_rank(BoutComm::get(), &rank);
-   
+  output << "rank \n" << rank <<endl;
+
+  
+  
   // we can run serial code on the master node . . .
   if (rank == 0)
     {  
-
-      PyRun_SimpleString("from time import time,ctime\n"
-			 "print 'Today is',ctime(time())\n");
-
+      
       printf("Running on processor %d \n",rank);
-      
       Py_Initialize();
+      PyRun_SimpleString("from time import time,ctime\n"
+			 "print 'Today is',ctime(time())\n");
+    
+      
+      
+      
+      
       
       PyRun_SimpleString("from time import time,ctime\n"
 			 "print 'Today is',ctime(time())\n");
 
-     
+      //return 0;
 
       
       

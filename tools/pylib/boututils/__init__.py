@@ -30,4 +30,4 @@ except:
 try:
     from file_import import file_import
 except:
-    print "no file import"
+    print "no file_import"
