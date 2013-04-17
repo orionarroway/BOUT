@@ -283,12 +283,20 @@ def savemovie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
         #m = plt.contourf(x,y,data_n[0,:,:],30,cmap=cmap)
         # if overcontour:
         #c = plt.contour(x,y,data_c[0,:,:],8,colors='k')
+        
+        #construct a decent colormap that work from slide to slie
+
+        #colormap = colors.Colormap()
         for i in np.arange(size[0]):
             fig = plt.figure()
             print i
             #m.set_data(data_n[i,:,:])
             ax = fig.add_subplot(111)
             #ax.annotate(str('%03d' % i),(xO +dx,yO+dy),fontsize = 20)
+            level_fill =  np.linspace(np.min(data_n[i,:,:]), 
+                                     np.max(data_n[i,:,:]),256)
+            #norml = colors.BoundaryNorm(lev, 256)
+            
             m = plt.contourf(x,y,data_n[i,:,:],30,cmap=cmap)
             if outline:
                 if bk == None:

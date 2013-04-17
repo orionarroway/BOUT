@@ -3,24 +3,6 @@ from ordereddict import OrderedDict
 import numpy as np
 from boututils import file_import
 from read_cxx import *
-
-
-class ValUnit(object):
-      def __init__(self,value=0,units=''):
-         self.u = units
-         self.v = value
-      def todict(self):
-         return {'u':self.u,'v':self.v}
-
-       
-def ToFloat(metaString):
-   try:
-      return float(metaString)
-   except ValueError:
-      return metaString
-
-
-
 def read_inp(path='',boutinp='BOUT.inp'):
    
    
@@ -61,12 +43,12 @@ def parse_inp(boutlist):
    current='[main]'
 
    for i,val in enumerate(boutlist):
-      print i,val
+      #print i,val
       result =pattern.match(val)
       #while the current value is not a new section name add everything to the current section
       
       if result is None:
-         print val
+         #print val
          key,value = val.split("=")
          value = value.replace('\"','')
          #print current, key,value
@@ -125,7 +107,6 @@ def read_log(path='.',logname='status.log'):
    return logdict
    
 def metadata(inpfile='BOUT.inp',path ='.',v=False):    
-
     filepath = path+'/'+inpfile
     print filepath
     inp = read_inp(path=path,boutinp=inpfile)
@@ -143,30 +124,25 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
        print 'cant find the cxx file'
     
     
-   #get metadata from the INPUT GRID - IC
+    #gridoptions = {'grid':grid,'mesh':mesh}
     if '[mesh]' in inp.keys():
        #IC = outinfo  
-          IC = read_grid(path+'/BOUT.dmp.0.nc') #grid, only non-redudant for geometry
+       IC = read_grid(path+'/BOUT.dmp.0.nc') #output data again
     elif 'grid' in inp['[main]']:
-          gridname = inp['[main]']['grid']
-          
-          try:
-                with open(gridname) as f: pass
-          except IOError as e:
-                gridname_i = gridname.rfind('/')
-                gridname = path+gridname[gridname_i::]
-          #print gridname
-
-          try:
-                IC = read_grid(gridname) #have to be an ansoulte file path for now
-                print 'IC: ',type(IC)
-    
-          except:
+       gridname = inp['[main]']['grid']
+       try:
+          IC = read_grid(gridname) #have to be an ansoulte file path for now
+          print 'IC: ',type(IC)
+       # print IC.variables
+       # print gridname
+       except:
        #print gridname
-                print 'Fail to load the grid file'
+          print 'Fail to load the grid file'
     #print IC
 
-
+    #print gridname
+    #print len(IC)
+    #print IC
        
     evolved = []
     collected =[]
@@ -208,16 +184,26 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
        if inp[section].get('collect','False').lower().strip() == 'true':
           collected.append(section.strip('[]'))
     
+        
+    
+             
     try:         
-          if inp['[physics]'].get('transport','False').lower().strip() == 'true':
-                vEBstr = ['vEBx','vEBy','vEBz','vEBrms']     
-                [collected.append(item) for item in vEBstr]
+       if inp['[physics]'].get('transport','False').lower().strip() == 'true':
+          vEBstr = ['vEBx','vEBy','vEBz','vEBrms']     
+          [collected.append(item) for item in vEBstr]
     except:
-          print 'no [physics] key'
-   
-  
+       print 'no [physics] key'
+                
     meta = OrderedDict()
+    
+    class ValUnit(object):
+       def __init__(self,value=0,units=''):
+          self.u = units
+          self.v = value
+       def todict(self):
+          return {'u':self.u,'v':self.v}
 
+   
 
     #def decode_valunit(d):
        
@@ -278,20 +264,20 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
           else:
             meta[elem] = IC.variables[elem][:]
             d[elem] = IC.variables[elem][:] 
-
+       
     #print d.keys()
 
     #if case some values are missing   
     default = {'bmag':1,'Ni_x':1,'NOUT':100,'TIMESTEP':1,
                'MZ':32,'AA':1,'Zeff':ValUnit(1,''),'ZZ':1,
-               'zlowpass':0.0,'transport':False,'Te_x':1}
+               'zlowpass':0.0,'transport':False}
     diff = set(default.keys()).difference(set(d.keys()))
        
     for elem in diff:
-          print 'diff: ',elem
-          meta[elem] = default[elem]
-          d[elem] = np.array(default[elem])
-      
+       #print 'diff: ',elem
+       meta[elem] = default[elem]
+       d[elem] = np.array(default[elem])
+
     #print meta.keys()
     #print d.keys()
     
@@ -302,9 +288,10 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
           print meta['MZ'].v, meta['zlowpass'].v
           meta['maxZ'] = int(np.floor(meta['MZ'].v*meta['zlowpass'].v))
     else:
-          meta['maxZ'] = 5
-  
-   
+       meta['maxZ'] = 5
+       
+    #meta['nx'] = nx
+    #meta['ny']= ny
     meta['dt'] = meta['TIMESTEP'] 
     
     
@@ -316,7 +303,7 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     meta['rho_s'] = ValUnit(1.02e2*np.sqrt(d['AA']*d['Te_x'])/(d['ZZ']* d['bmag']),'cm')   # ion gyrorad at T_e, in cm 
     meta['rho_i'] = ValUnit(1.02e2*np.sqrt(d['AA']*d['Ti_x'])/(d['ZZ']* d['bmag']),'cm') 
     meta['rho_e'] = ValUnit(2.38*np.sqrt(d['Te_x'])/(d['bmag']),'cm') 
-   
+    
     meta['fmei']  = ValUnit(1./1836.2/d['AA'])   
     
     meta['lambda_ei'] = 24.-np.log(np.sqrt(d['Ni_x'])/d['Te_x']) ;
@@ -324,7 +311,7 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
 
     meta['wci']       = 1.0*9.58e3*d['ZZ']*d['bmag']/d['AA'] # ion gyrofrteq
     meta['wpi']       = 1.32e3*d['ZZ']*np.sqrt(d['Ni_x']/d['AA']) # ion plasma freq 
-    
+
     meta['wce']       = 1.78e7*d['bmag'] #electron gyrofreq
     meta['wpe']       = 5.64e4*np.sqrt(d['Ni_x'])#electron plasma freq
     
@@ -342,15 +329,17 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     meta['L_e_inrt']  = 5.31e5*np.sqrt(d['Ni_x']) #elec inertial length in cm
     
     meta['Ve_x'] = 4.19e7*d['Te_x']
+
     
     meta['R0'] =  (d['Rxy'].max()+d['Rxy'].min())/2.0 
-   
+    
+ 
     print d['Rxy'].mean(1) 
     print d['ZMAX']
     print  d['ZMIN'] 
     meta['L_z'] = 1e2 * 2*np.pi * d['Rxy'].mean(1) *(d['ZMAX'] - d['ZMIN']) # in cm toroidal range
     meta['dz'] = (d['ZMAX'] - d['ZMIN'])
-    
+ 
     #meta['lbNorm']=meta['L_z']*(d['Bpxy']/d['Bxy']).mean(1)     #-binormal coord range [cm]
     meta['lbNorm']=meta['L_z']*(d['Bxy']/d['Bpxy']).mean(1)
     
@@ -382,21 +371,26 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
 
     # for now just translate
     for elem in meta:
-          if type(meta[elem]).__name__ =='ValUnit':
-                meta[elem] = {'u':meta[elem].u,'v':meta[elem].v}
+       if type(meta[elem]).__name__ =='ValUnit':
+          meta[elem] = {'u':meta[elem].u,'v':meta[elem].v}
     
-   
-    netcdftype = meta['nx'].__class__ 
-    
+       
     print 'meta: ', type(meta)
-    for key,value in meta.iteritems():
-          if isinstance(value,netcdftype):
-                meta[key] = np.array(value[:])
-                print key,meta[key].shape
-                if len(meta[key].shape) is not 1:
-                      if np.std(meta[key]) is 0:
-                            meta[key] = np.mean(meta[key])
-                            print 'fixed to ', meta[key].shape, meta[key]
-
     return meta
 
+    # meta['DZ'] =inp['[main]']['ZMAX']#-b['[main]']['ZMIN']
+    # AA = inp['[2fluid]']['AA']
+    # Ni0 = IC.variables['Ni0'][:]*1.e14
+    # bmag = IC.variables['bmag'][:]*1.e4 #to cgs
+    # Ni_x = IC.variables['Ni_x'][:]*1.e14 # cm^-3
+    # Te_x
+    
+    # rho_s = 1.02e2*sqrt(AA.v*Te_x.v)/ZZ.v/bmag.v
+    # rho_i
+    # rho_e 
+    
+    
+
+    
+
+   #for i,val in enumerate(boutlist):

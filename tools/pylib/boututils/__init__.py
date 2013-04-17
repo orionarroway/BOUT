@@ -31,3 +31,8 @@ try:
     from file_import import file_import
 except:
     print "no file_import"
+
+try:
+    from primitivegrd import write_grid
+except:
+    print 'no write grid'
