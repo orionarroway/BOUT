@@ -61,12 +61,12 @@ def parse_inp(boutlist):
    current='[main]'
 
    for i,val in enumerate(boutlist):
-      #print i,val
+      print i,val
       result =pattern.match(val)
       #while the current value is not a new section name add everything to the current section
       
       if result is None:
-         #print val
+         print val
          key,value = val.split("=")
          value = value.replace('\"','')
          #print current, key,value
@@ -144,26 +144,26 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     
     
    #get metadata from the INPUT GRID - IC
-   if '[mesh]' in inp.keys():
+    if '[mesh]' in inp.keys():
        #IC = outinfo  
-      IC = read_grid(path+'/BOUT.dmp.0.nc') #grid, only non-redudant for geometry
-   elif 'grid' in inp['[main]']:
-      gridname = inp['[main]']['grid']
-       
-      try:
-         with open(gridname) as f: pass
-      except IOError as e:
-         gridname_i = gridname.rfind('/')
-         gridname = path+gridname[gridname_i::]
+          IC = read_grid(path+'/BOUT.dmp.0.nc') #grid, only non-redudant for geometry
+    elif 'grid' in inp['[main]']:
+          gridname = inp['[main]']['grid']
+          
+          try:
+                with open(gridname) as f: pass
+          except IOError as e:
+                gridname_i = gridname.rfind('/')
+                gridname = path+gridname[gridname_i::]
           #print gridname
 
-      try:
-         IC = read_grid(gridname) #have to be an ansoulte file path for now
-         print 'IC: ',type(IC)
+          try:
+                IC = read_grid(gridname) #have to be an ansoulte file path for now
+                print 'IC: ',type(IC)
     
-      except:
+          except:
        #print gridname
-         print 'Fail to load the grid file'
+                print 'Fail to load the grid file'
     #print IC
 
 
@@ -207,17 +207,16 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
             
        if inp[section].get('collect','False').lower().strip() == 'true':
           collected.append(section.strip('[]'))
-
-             
-   try:         
-      if inp['[physics]'].get('transport','False').lower().strip() == 'true':
-         vEBstr = ['vEBx','vEBy','vEBz','vEBrms']     
-         [collected.append(item) for item in vEBstr]
-   except:
-      print 'no [physics] key'
+    
+    try:         
+          if inp['[physics]'].get('transport','False').lower().strip() == 'true':
+                vEBstr = ['vEBx','vEBy','vEBz','vEBrms']     
+                [collected.append(item) for item in vEBstr]
+    except:
+          print 'no [physics] key'
    
   
-   meta = OrderedDict()
+    meta = OrderedDict()
 
 
     #def decode_valunit(d):
@@ -283,15 +282,15 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     #print d.keys()
 
     #if case some values are missing   
-   default = {'bmag':1,'Ni_x':1,'NOUT':100,'TIMESTEP':1,
-              'MZ':32,'AA':1,'Zeff':ValUnit(1,''),'ZZ':1,
-              'zlowpass':0.0,'transport':False,'Te_x':1}
-   diff = set(default.keys()).difference(set(d.keys()))
+    default = {'bmag':1,'Ni_x':1,'NOUT':100,'TIMESTEP':1,
+               'MZ':32,'AA':1,'Zeff':ValUnit(1,''),'ZZ':1,
+               'zlowpass':0.0,'transport':False,'Te_x':1}
+    diff = set(default.keys()).difference(set(d.keys()))
        
-   for elem in diff:
-         print 'diff: ',elem
-         meta[elem] = default[elem]
-         d[elem] = np.array(default[elem])
+    for elem in diff:
+          print 'diff: ',elem
+          meta[elem] = default[elem]
+          d[elem] = np.array(default[elem])
       
     #print meta.keys()
     #print d.keys()
@@ -299,17 +298,14 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     #print meta['zlowpass']
     
        
-   if meta['zlowpass'] != 0:
-      print meta['MZ'].v, meta['zlowpass'].v
-      meta['maxZ'] = int(np.floor(meta['MZ'].v*meta['zlowpass'].v))
-   else:
-      meta['maxZ'] = 5
-       
-   #meta['nx'] = meta['nx']
-   #meta['ny']=  meta['ny'][0]
-
+    if meta['zlowpass'] != 0:
+          print meta['MZ'].v, meta['zlowpass'].v
+          meta['maxZ'] = int(np.floor(meta['MZ'].v*meta['zlowpass'].v))
+    else:
+          meta['maxZ'] = 5
+  
    
-   meta['dt'] = meta['TIMESTEP'] 
+    meta['dt'] = meta['TIMESTEP'] 
     
     
     #nx,ny  = d['Rxy'].shape
@@ -317,66 +313,66 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
        
     #print meta['AA'].v
     
-   meta['rho_s'] = ValUnit(1.02e2*np.sqrt(d['AA']*d['Te_x'])/(d['ZZ']* d['bmag']),'cm')   # ion gyrorad at T_e, in cm 
-   meta['rho_i'] = ValUnit(1.02e2*np.sqrt(d['AA']*d['Ti_x'])/(d['ZZ']* d['bmag']),'cm') 
-   meta['rho_e'] = ValUnit(2.38*np.sqrt(d['Te_x'])/(d['bmag']),'cm') 
+    meta['rho_s'] = ValUnit(1.02e2*np.sqrt(d['AA']*d['Te_x'])/(d['ZZ']* d['bmag']),'cm')   # ion gyrorad at T_e, in cm 
+    meta['rho_i'] = ValUnit(1.02e2*np.sqrt(d['AA']*d['Ti_x'])/(d['ZZ']* d['bmag']),'cm') 
+    meta['rho_e'] = ValUnit(2.38*np.sqrt(d['Te_x'])/(d['bmag']),'cm') 
    
-   meta['fmei']  = ValUnit(1./1836.2/d['AA'])   
+    meta['fmei']  = ValUnit(1./1836.2/d['AA'])   
     
-   meta['lambda_ei'] = 24.-np.log(np.sqrt(d['Ni_x'])/d['Te_x']) ;
-   meta['lambda_ii'] = 23.-np.log(d['ZZ']**3 * np.sqrt(2.*d['Ni_x'])/(d['Ti_x']**1.5)) #
+    meta['lambda_ei'] = 24.-np.log(np.sqrt(d['Ni_x'])/d['Te_x']) ;
+    meta['lambda_ii'] = 23.-np.log(d['ZZ']**3 * np.sqrt(2.*d['Ni_x'])/(d['Ti_x']**1.5)) #
 
-   meta['wci']       = 1.0*9.58e3*d['ZZ']*d['bmag']/d['AA'] # ion gyrofrteq
-   meta['wpi']       = 1.32e3*d['ZZ']*np.sqrt(d['Ni_x']/d['AA']) # ion plasma freq 
-
-   meta['wce']       = 1.78e7*d['bmag'] #electron gyrofreq
-   meta['wpe']       = 5.64e4*np.sqrt(d['Ni_x'])#electron plasma freq
+    meta['wci']       = 1.0*9.58e3*d['ZZ']*d['bmag']/d['AA'] # ion gyrofrteq
+    meta['wpi']       = 1.32e3*d['ZZ']*np.sqrt(d['Ni_x']/d['AA']) # ion plasma freq 
     
-   meta['v_the']    = 4.19e7*np.sqrt(d['Te_x'])#cm/s
-   meta['v_thi']    = 9.79e5*np.sqrt(d['Ti_x']/d['AA']) #cm/s
-   meta['c_s']      = 9.79e5*np.sqrt(5.0/3.0 * d['ZZ'] * d['Te_x']/d['AA'])#
-   meta['v_A']     = 2.18e11*np.sqrt(1.0/(d['AA'] * d['Ni_x']))
+    meta['wce']       = 1.78e7*d['bmag'] #electron gyrofreq
+    meta['wpe']       = 5.64e4*np.sqrt(d['Ni_x'])#electron plasma freq
     
-   meta['nueix']     = 2.91e-6*d['Ni_x']*meta['lambda_ei']/d['Te_x']**1.5 #
-   meta['nuiix']     = 4.78e-8*d['ZZ']**4.*d['Ni_x']*meta['lambda_ii']/d['Ti_x']**1.5/np.sqrt(d['AA']) #
-   meta['nu_hat']    = meta['Zeff'].v*meta['nueix']/meta['wci'] 
+    meta['v_the']    = 4.19e7*np.sqrt(d['Te_x'])#cm/s
+    meta['v_thi']    = 9.79e5*np.sqrt(d['Ti_x']/d['AA']) #cm/s
+    meta['c_s']      = 9.79e5*np.sqrt(5.0/3.0 * d['ZZ'] * d['Te_x']/d['AA'])#
+    meta['v_A']     = 2.18e11*np.sqrt(1.0/(d['AA'] * d['Ni_x']))
     
-   meta['L_d']      = 7.43e2*np.sqrt(d['Te_x']/d['Ni_x'])
-   meta['L_i_inrt']  = 2.28e7*np.sqrt(d['AA']/d['Ni_x'])/ d['ZZ'] #ion inertial length in cm
-   meta['L_e_inrt']  = 5.31e5*np.sqrt(d['Ni_x']) #elec inertial length in cm
+    meta['nueix']     = 2.91e-6*d['Ni_x']*meta['lambda_ei']/d['Te_x']**1.5 #
+    meta['nuiix']     = 4.78e-8*d['ZZ']**4.*d['Ni_x']*meta['lambda_ii']/d['Ti_x']**1.5/np.sqrt(d['AA']) #
+    meta['nu_hat']    = meta['Zeff'].v*meta['nueix']/meta['wci'] 
+    
+    meta['L_d']      = 7.43e2*np.sqrt(d['Te_x']/d['Ni_x'])
+    meta['L_i_inrt']  = 2.28e7*np.sqrt(d['AA']/d['Ni_x'])/ d['ZZ'] #ion inertial length in cm
+    meta['L_e_inrt']  = 5.31e5*np.sqrt(d['Ni_x']) #elec inertial length in cm
+    
+    meta['Ve_x'] = 4.19e7*d['Te_x']
+    
+    meta['R0'] =  (d['Rxy'].max()+d['Rxy'].min())/2.0 
    
-   meta['Ve_x'] = 4.19e7*d['Te_x']
+    print d['Rxy'].mean(1) 
+    print d['ZMAX']
+    print  d['ZMIN'] 
+    meta['L_z'] = 1e2 * 2*np.pi * d['Rxy'].mean(1) *(d['ZMAX'] - d['ZMIN']) # in cm toroidal range
+    meta['dz'] = (d['ZMAX'] - d['ZMIN'])
     
-   meta['R0'] =  (d['Rxy'].max()+d['Rxy'].min())/2.0 
-   
-   print d['Rxy'].mean(1) 
-   print d['ZMAX']
-   print  d['ZMIN'] 
-   meta['L_z'] = 1e2 * 2*np.pi * d['Rxy'].mean(1) *(d['ZMAX'] - d['ZMIN']) # in cm toroidal range
-   meta['dz'] = (d['ZMAX'] - d['ZMIN'])
- 
     #meta['lbNorm']=meta['L_z']*(d['Bpxy']/d['Bxy']).mean(1)     #-binormal coord range [cm]
-   meta['lbNorm']=meta['L_z']*(d['Bxy']/d['Bpxy']).mean(1)
+    meta['lbNorm']=meta['L_z']*(d['Bxy']/d['Bpxy']).mean(1)
     
     #meta['zPerp']=np.array(meta['lbNorm']).mean*np.array(range(d['MZ']))/(d['MZ']-1) 
   #let's calculate some profile properties
-   dx = np.gradient(d['Rxy'])[0]
-   meta['L'] = 1.0*1e2*dx*(meta['Ni0'].v)/np.gradient(meta['Ni0'].v)[0]/meta['rho_s'].v
+    dx = np.gradient(d['Rxy'])[0]
+    meta['L'] = 1.0*1e2*dx*(meta['Ni0'].v)/np.gradient(meta['Ni0'].v)[0]/meta['rho_s'].v
     
-   meta['w_Ln']     =  meta['c_s']/(np.min(abs(meta['L']))*meta['wci'] *meta['rho_s'].v) #normed to wci
+    meta['w_Ln']     =  meta['c_s']/(np.min(abs(meta['L']))*meta['wci'] *meta['rho_s'].v) #normed to wci
 
-   AA = meta['AA'].v
-   ZZ = d['ZZ']
-   Te_x = d['Te_x']
-   Ti_x = d['Ti_x']
-   fmei = meta['fmei'].v
+    AA = meta['AA'].v
+    ZZ = d['ZZ']
+    Te_x = d['Te_x']
+    Ti_x = d['Ti_x']
+    fmei = meta['fmei'].v
     
-   meta['lpar'] =1e2*((d['Bxy']/d['Bpxy'])*d['dlthe']).sum(1)/meta['rho_s'].v #-[normed], average over flux surfaces, parallel length
+    meta['lpar'] =1e2*((d['Bxy']/d['Bpxy'])*d['dlthe']).sum(1)/meta['rho_s'].v #-[normed], average over flux surfaces, parallel length
 
     #yes dlthe is always the vertical displacement 
     #dlthe = (hthe0*2 pi)/nz
     #meta['lpar']=1e2*(d['Bxy']/d['Bpxy']).mean(1)*d['dlthe'].mean(1) #function of x
-   meta['sig_par'] = 1.0/(fmei*0.51*meta['nu_hat'])
+    meta['sig_par'] = 1.0/(fmei*0.51*meta['nu_hat'])
     #meta['heat_nue'] = ((2*np.pi/meta['lpar'])**2)/(fmei*meta['nu_hat'])
     #kz_e = kz_i*(rho_e/rho_i)
     # kz_s = kz_i*(rho_s/rho_i)
@@ -385,22 +381,22 @@ def metadata(inpfile='BOUT.inp',path ='.',v=False):
     # knorm = (TWOPI/lbNorm)*(indgen((*current_str).fft.nz+1))*rho_s
 
     # for now just translate
-   for elem in meta:
-      if type(meta[elem]).__name__ =='ValUnit':
-         meta[elem] = {'u':meta[elem].u,'v':meta[elem].v}
+    for elem in meta:
+          if type(meta[elem]).__name__ =='ValUnit':
+                meta[elem] = {'u':meta[elem].u,'v':meta[elem].v}
     
    
-   netcdftype = meta['nx'].__class__ 
+    netcdftype = meta['nx'].__class__ 
+    
+    print 'meta: ', type(meta)
+    for key,value in meta.iteritems():
+          if isinstance(value,netcdftype):
+                meta[key] = np.array(value[:])
+                print key,meta[key].shape
+                if len(meta[key].shape) is not 1:
+                      if np.std(meta[key]) is 0:
+                            meta[key] = np.mean(meta[key])
+                            print 'fixed to ', meta[key].shape, meta[key]
 
-   print 'meta: ', type(meta)
-   for key,value in meta.iteritems():
-         if isinstance(value,netcdftype):
-               meta[key] = np.array(value[:])
-               print key,meta[key].shape
-               if len(meta[key].shape) is not 1:
-                     if np.std(meta[key]) is 0:
-                           meta[key] = np.mean(meta[key])
-                           print 'fixed to ', meta[key].shape, meta[key]
-
-   return meta
+    return meta
 

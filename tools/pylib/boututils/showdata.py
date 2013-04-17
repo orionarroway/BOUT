@@ -172,7 +172,7 @@ def savemovie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
               moviename='output.avi',norm=False,
               overcontour=True,aspect='auto',meta=None,mxg=2,
               cache='/tmp/',hd=False,nlevels = 9,removeZero=True,
-              t_array=None):
+              t_array=None,outline=True,bk=None,fps=10.0):
     
     size = data.shape
     ndims = len(size)
@@ -263,12 +263,19 @@ def savemovie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
             x = x[mxg:-mxg,:]
             y = y[mxg:-mxg,:]
             data_n = data_n[:,mxg:-mxg,:]
-            data_c = data_c[:,mxg:-mxg,:]
+            if len(data_c.shape)==2:
+                data_c = data_c[mxg:-mxg,:]
+            else:
+                data_c = data_c[:,mxg:-mxg,:]
         else:
             x = xO + dx*np.arange(nx)
             y = yO + dy*np.arange(nz)
             data_n = np.transpose(data_n,[0,2,1])
-            data_c = np.transpose(data_c,[0,2,1])
+            
+            if len(data_c.shape)==2:
+                data_c = np.transpose(data_c)
+            else:
+                data_c = np.transpose(data_c,[0,2,1])
            
             print x.shape,y.shape,data_n.shape
         
@@ -283,6 +290,12 @@ def savemovie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
             ax = fig.add_subplot(111)
             #ax.annotate(str('%03d' % i),(xO +dx,yO+dy),fontsize = 20)
             m = plt.contourf(x,y,data_n[i,:,:],30,cmap=cmap)
+            if outline:
+                if bk == None:
+                    bk = np.min(data[i,:,:])
+                plt.contour(x,y,data_n[i,:,:],1,linewidths=1,
+                            colors='r',alpha=1,
+                            levels=[1.1*bk,np.max(data_n[i])/10.0])
             
             #c = plt.contour(data[i,:,:],8,colors='k')
             #c.set_data(data[i,:,:])
@@ -296,13 +309,18 @@ def savemovie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
                             print 'not in this collection'
                 except:
                     print 'i = 0'
-                levels = np.linspace(np.min(data_c[i,:,:]), 
-                                     np.max(data_c[i,:,:]),nlevels)
+
+                if len(data_c.shape)==2:
+                    wire = data_c
+                else:
+                    wire = data_c[i,:,:]
+                levels = np.linspace(np.min(wire), 
+                                     np.max(wire),nlevels)
                 print np.where(np.min(np.abs(levels)) < np.abs(levels))
                 if removeZero:
                     levels = levels[np.where(np.min(np.abs(levels)) < np.abs(levels))]
                 try:
-                    c = plt.contour(x,y,data_c[i,:,:],levels,colors='k')
+                    c = plt.contour(x,y,wire,levels,colors='k',alpha=.4)
                 except:
                     print 'no contour for you'
                 #ax.annotate(str('%03d' % i),(xO +dx,yO+dy),fontsize = 20)
@@ -338,7 +356,7 @@ def savemovie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
     command = ('mencoder',
                'mf://'+cache+'*.png',
                '-mf',
-               'type=png:w=800:h=600:fps=5',
+               'type=png:w=800:h=600:fps='+str(fps),
                '-ovc',
                'lavc',
                '-lavcopts',
