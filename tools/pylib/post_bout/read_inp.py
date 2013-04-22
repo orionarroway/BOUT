@@ -1,9 +1,20 @@
 from read_grid import read_grid
-from ordereddict import OrderedDict
+import sys
+#from ordereddict import OrderedDict
+
+if sys.version_info < (2,7):
+   print sys.version_info
+   from ordereddict import OrderedDict
+else:
+   from collections import OrderedDict
+
 import numpy as np
 from boututils import file_import
 from read_cxx import *
+
+
 def read_inp(path='',boutinp='BOUT.inp'):
+
    
    
    boutfile = path+'/'+boutinp
@@ -24,8 +35,13 @@ def read_inp(path='',boutinp='BOUT.inp'):
 def parse_inp(boutlist):
 
    import re
-   from ordereddict import OrderedDict
    
+   if sys.version_info < (2,7):
+      print sys.version_info
+      from ordereddict import OrderedDict
+   else:
+      from collections import OrderedDict
+
    if not boutlist:
       return 0
 
@@ -65,7 +81,7 @@ def read_log(path='.',logname='status.log'):
    
    print 'in read_log'
    import re
-   from ordereddict import OrderedDict
+   #from ordereddict import OrderedDict
    
    #logfile = path+'/'+logname
    logfile = logname
