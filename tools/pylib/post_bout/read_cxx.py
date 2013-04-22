@@ -1,5 +1,11 @@
 from read_grid import read_grid
-from ordereddict import OrderedDict
+import sys
+if sys.version_info < (2,7):
+   print sys.version_info
+   from ordereddict import OrderedDict
+else:
+   from collections import OrderedDict
+
 import numpy as np
 import string
 import re
