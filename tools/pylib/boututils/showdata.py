@@ -172,10 +172,10 @@ def showdata(data, scale=True, loop=False,movie=False):
 
    
 def new_save_movie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
-                 moviename='output.avi',norm=False,
-                 overcontour=True,aspect='auto',meta=None,mxg=2,
-                 cache='/tmp/',hd=False,nlevels = 9,removeZero=True,
-                 t_array=None,outline=True,bk=None,fps=10.0,fast=True):
+                   moviename='output',norm=False,
+                   overcontour=True,aspect='auto',meta=None,mxg=2,
+                   cache='/tmp/',hd=False,nlevels = 9,removeZero=True,
+                   t_array=None,outline=True,bk=None,fps=5.0,fast=True):
     try:
         import matplotlib.animation as animation  
         from matplotlib.lines import Line2D
@@ -211,19 +211,19 @@ def new_save_movie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
     amp = abs(data).max(1).max(1)
 
     
-    kx_max = nx/8
-    kz_max = nz/8
+    kx_max = nx/10.0
+    kz_max = nz/10.0
 
     fft_data = np.fft.fft2(data)[:,0:kx_max,0:kz_max]
     power = fft_data.conj() * fft_data
 
     power.shape
 
-    kz = np.linspace(0,kz_max-1,kz_max)
+    kz = (2.0*np.pi/(1.0*dy))*np.linspace(0,kz_max-1,kz_max)
     kz = np.repeat(kz,kx_max)
     kz = np.transpose(kz.reshape(kz_max,kx_max))
 
-    kx = np.linspace(0,kx_max-1,kx_max)
+    kx =(2.0*np.pi/(1.0*dx))*np.linspace(0,kx_max-1,kx_max)
     kx = np.repeat(kx,kz_max)
     kx = kx.reshape(kx_max,kz_max)
     
@@ -318,12 +318,18 @@ def new_save_movie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
         imgrid.append(fig.add_subplot(2,2,3))
 
         imgrid[-1].set_yscale('log')
-        imgrid[-1].set_xscale('log')
+        #imgrid[-1].set_xscale('log')
         #imgrid[-1].yaxis.set_major_formatter(formatter)
-        #imgrid[-1].set_ylim(np.max(np.min(power[:,:,:]),np.max(power[:,:,:])))
-        powerline, = imgrid[-1].plot(k.flatten(),power[0,:,:].flatten(),marker='.',linestyle='None',markersize = 1)
+       
+        imgrid[-1].set_ylim(np.min(power[1:,:,:]),np.max(power[1:,:,:]))
+        imgrid[-1].xaxis.set_major_formatter(lin_formatter)
+        #imgrid[-1].axis('tight')
+        #remove the dc component
+        
+        powerline, = imgrid[-1].plot((k.flatten())[1:],(power[0,:,:].flatten())[1:],marker='.',linestyle='None',markersize = 1)
+        
         imgrid[-1].set_xlabel(r'$|k_{\perp} \rho_{ci}|$',fontsize=5)
-        imgrid[-1].set_ylabel(r'$A_k$',fontsize=5,rotation='horizontal')
+        imgrid[-1].set_ylabel(r'$P_k$',fontsize=5,rotation='horizontal')
         
         #for img in imgrid:
         imgrid[-1].tick_params(which='both',axis='both', direction='in')
@@ -382,16 +388,16 @@ def new_save_movie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
             #print t.shape,amp.shape
             ampdot.set_data(t[n],amp[n])
 
-            powerline.set_data(k.flatten(),power[n,:,:].flatten())
+            powerline.set_data(k.flatten()[1:],power[n,:,:].flatten()[1:])
             #imgrid[2].axis('tight')
             #imgrid[2].plot(k.flatten(),power[n,:,:].flatten(),marker='.',linestyle='None',markersize = 1)
             #imgrid[2].set_ylim(np.max(np.min(power[:,:,:]),np.max(power[:,:,:])))
             #imgrid[2].set_ylim(
         
-        ani = animation.FuncAnimation(fig,update_img,nt-1,interval=30)
-        writer = animation.writers['ffmpeg'](fps=5)
+        ani = animation.FuncAnimation(fig,update_img,10,interval=30)
+        writer = animation.writers['ffmpeg'](fps=fps)
 
-        ani.save('demo.mp4',writer=writer,dpi=dpi)
+        ani.save(moviename+'.mp4',writer=writer,dpi=dpi)
         return ani
 
     ani_frame()
