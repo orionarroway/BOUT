@@ -242,10 +242,12 @@ def new_save_movie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
     
     axes = {'linewidth': .5}
     tickset ={'markeredgewidth': .25}
+    #bitrate = {'bitrate':1000}
 
     matplotlib.rc('font', **font)
     matplotlib.rc('axes',**axes)
     matplotlib.rc('lines',**tickset)
+    #matplotlib.rcParams['animation.bitrate'] = 100000
 
     #tickargs = {'which':'both','axis':'both','direction':'in'}
     matplotlib.pyplot.tick_params(axis='both',direction='in',which='both')
@@ -402,10 +404,11 @@ def new_save_movie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
             #imgrid[2].set_ylim(np.max(np.min(power[:,:,:]),np.max(power[:,:,:])))
             #imgrid[2].set_ylim(
         
-        ani = animation.FuncAnimation(fig,update_img,nt-1)
-        writer = animation.writers[encoder](fps=fps)
+        ani = animation.FuncAnimation(fig,update_img,30)
+        #writer = animation.writers[encoder]()
 
-        ani.save(moviename+'.mp4',writer=writer,dpi=dpi)
+        
+        ani.save(moviename+'.mp4',writer=encoder,dpi=dpi,bitrate=20000,fps=5)
         return ani
 
     ani_frame()
