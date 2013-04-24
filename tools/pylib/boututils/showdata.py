@@ -181,6 +181,7 @@ def new_save_movie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
         import matplotlib.animation as animation  
         from matplotlib.lines import Line2D
         import mpl_toolkits.axisartist as axisartist
+        import pylab
         #from pylab import writer
     except:
         print "No animation submodule = no movie"
@@ -248,8 +249,9 @@ def new_save_movie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
 
     #tickargs = {'which':'both','axis':'both','direction':'in'}
     matplotlib.pyplot.tick_params(axis='both',direction='in',which='both')
-    #count = 0;
-   
+    
+    jet = plt.get_cmap('jet',2000) 
+
     def setup_axes(fig, rect):
         
         ax = axisartist.Subplot(fig, rect)
@@ -280,9 +282,14 @@ def new_save_movie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
         axhandle.append(ax)
         #1st image############
         imgrid = []
+        #jetHD = matplotlib.colors.Colormap('jet', N=1024)
         
-        imgrid.append(ax.imshow(data_n[0,:,:],aspect='auto',cmap='jet',
-                                interpolation='bicubic'))
+        
+        imgrid.append(ax.imshow(data_n[0,:,:],aspect='auto',cmap=jet,
+                                 interpolation='bicubic'))
+        
+        # imgrid.append(ax.contourf(data_n[0,:,:],aspect='auto',cmap='jet',
+        #                         interpolation='bicubic'))
         
         #contour image overplots
         if len(data_c.shape)==2:
