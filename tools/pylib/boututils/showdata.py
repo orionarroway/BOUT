@@ -175,7 +175,8 @@ def new_save_movie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
                    moviename='output',norm=False,
                    overcontour=True,aspect='auto',meta=None,mxg=2,
                    cache='/tmp/',hd=False,nlevels = 9,removeZero=True,
-                   t_array=None,outline=True,bk=None,fps=5.0,fast=True):
+                   t_array=None,outline=True,bk=None,fps=5.0,fast=True,
+                   encoder='mencoder'):
     try:
         import matplotlib.animation as animation  
         from matplotlib.lines import Line2D
@@ -394,8 +395,8 @@ def new_save_movie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
             #imgrid[2].set_ylim(np.max(np.min(power[:,:,:]),np.max(power[:,:,:])))
             #imgrid[2].set_ylim(
         
-        ani = animation.FuncAnimation(fig,update_img,10,interval=30)
-        writer = animation.writers['ffmpeg'](fps=fps)
+        ani = animation.FuncAnimation(fig,update_img,nt-1)
+        writer = animation.writers[encoder](fps=fps)
 
         ani.save(moviename+'.mp4',writer=writer,dpi=dpi)
         return ani
