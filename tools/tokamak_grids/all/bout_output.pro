@@ -748,7 +748,9 @@ PRO bout_output, data, output=output, input=input,$
                           REFORM(Zxy[nx-1, *]), $
                           REFORM(Bpxy[nx-1,*]), $
                           REFORM(Btxy[nx-1,*]), $
-                          ABS(dpsi), n = nvac, sm=vacsmooth)    
+                          ABS(dpsi),n=nvac, $
+                          sm=vacsmooth)   
+              
               
               done = get_yesno("Is this ok?")
           ENDREP UNTIL done EQ 1

@@ -183,6 +183,19 @@ BoutReal FieldHeaviside::generate(const Mesh *fieldmesh, int x, int y, int z) {
   return (gen->generate(fieldmesh, x,y,z) > 0.0) ? 1.0 : 0.0;
 }
 
+FieldGenerator* FieldPyCall::clone(const list<FieldGenerator*> args) {
+  if(args.size() != 1) {
+    output << "FieldFactory error: Incorrect number of arguments to heaviside function. Expecting 1, got " << args.size() << endl;
+    return NULL;
+  }
+  
+  return new FieldPyCall(args.front());
+}
+
+BoutReal FieldPyCall::generate(const Mesh *fieldmesh, int x, int y, int z) {
+  return (gen->generate(fieldmesh, x,y,z) > 0.0) ? 1.0 : 0.0;
+}
+
 //////////////////////////////////////////////////////////
 // FieldFactory public functions
 

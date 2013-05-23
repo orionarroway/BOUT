@@ -10,24 +10,31 @@
 ##################################################
 # settings used by the core code
 
-NOUT = 30       # number of time-steps
-TIMESTEP = 5e3   # time between outputs
+NOUT = 50       # number of time-steps
+TIMESTEP = 1e3   # time between outputs
 
 ShiftXderivs = false # use shifted radial derivatives?
 TwistShift = false  # use twist-shift condition?
 
-MZ = 33     # number of points in z direction (2^n + 1)
+MZ = 513     # number of points in z direction (2^n + 1)
 ZMIN = 0.0
-ZMAX = 1.91125e-4
+#ZMAX = 1.91125e-4
+ZMAX = 2.0e-4
 
 MXG = 2
-MYG = 2
+MYG = 1
 
 grid="uedge.grd_std.cdl"
 
 dump_format = "nc" # Output format. nc = NetCDF
 
+restart = false
 #StaggerGrids = true
+# [mesh]
+# nx = 5
+# ny = 128
+# dy = 1.0e-5
+# dx = 1.0
 
 ##################################################
 # derivative methods
@@ -54,10 +61,11 @@ upwind = W3
 # Solver settings
 
 [solver]
-type = petsc-3.2
+type = cvode
+#type = petsc-3.2
 # mudq, mldq, mukeep, mlkeep preconditioner options
-ATOL = 1.0e-12 # absolute tolerance
-RTOL = 1.0e-7  # relative tolerance
+ATOL = 1.0e-3 # absolute tolerance
+RTOL = 1.0e-2  # relative tolerance
 mxstep = 5000
 
 ##################################################
@@ -102,8 +110,8 @@ scale = 0.0 # default size of initial perturbations
 # 3 - Mix of mode numbers (like original BOUT)
 
 xs_opt = 0
-ys_opt = 2
-zs_opt = 2
+ys_opt = 3
+zs_opt = 3
 
 ys_mode = 1#
 
@@ -116,11 +124,11 @@ zs_mode = 1 # toroidal mode number
 # zerolaplace  = Laplacian = 0, decaying solution
 # constlaplace = Laplacian = 0, decaying solution
 
-bndry_all = neumann # Zero-gradient on all boundaries
+bndry_all = dirichlet # Zero-gradient on all boundaries
 
 [Ni]
 scale = 1.0e-8 # only perturbing Ni
-
+function = gauss((y-6.28*.5)/(0.1*6.28))*gauss((z-6.28*.5)/(.01*6.28)) +.01
 [Vi]
 evolve = false
 

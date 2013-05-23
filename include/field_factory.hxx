@@ -223,6 +223,17 @@ private:
   char op;
 };
 
+class FieldPyCall : public FieldGenerator {
+public:
+  FieldPyCall(FieldGenerator* g) : gen(g) {}
+  ~FieldPyCall() {if(gen) delete gen;}
+  
+  FieldGenerator* clone(const list<FieldGenerator*> args);
+  BoutReal generate(const Mesh *fieldmesh, int x, int y, int z);
+private:
+  FieldGenerator *gen;
+};
+
 //////////////////////////////////////////////////////////
 // Create a tree of generators from an input string
 

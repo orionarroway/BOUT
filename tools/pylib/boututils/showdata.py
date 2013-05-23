@@ -182,6 +182,7 @@ def new_save_movie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
         from matplotlib.lines import Line2D
         import mpl_toolkits.axisartist as axisartist
         import pylab
+        import pywt
         #from pylab import writer
     except:
         print "No animation submodule = no movie"
@@ -213,11 +214,20 @@ def new_save_movie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
     amp = abs(data).max(1).max(1)
 
     
-    kx_max = nx/10.0
-    kz_max = nz/10.0
+    #kx_max = 2*np.round(nx/6.0)
+    #kz_max = nz/4.0
+    kx_max = nx
+    kz_max = nz
 
-    fft_data = np.fft.fft2(data)[:,0:kx_max,0:kz_max]
+    #fft_data = np.fft.fft2(data)[:,0:kx_max,0:kz_max]
+    fft_data = np.fft.fft2(data)
+    #fft_data = np.roll(fft_data,nx/2,axis=1)
+    #fft_data = np.roll(fft_data,nz/2,axis=2)
+    #fft_data = fft_data[:,nx/2-kx_max/2:nx/2+kx_max/2,
+    #                      nz/2-kz_max/2:nz/2+kz_max/2]
     power = fft_data.conj() * fft_data
+    
+    autocorr = np.fft.ifft2(power)
 
     power.shape
 
@@ -253,6 +263,11 @@ def new_save_movie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
     matplotlib.pyplot.tick_params(axis='both',direction='in',which='both')
     
     jet = plt.get_cmap('jet',2000) 
+
+
+    #wavlet object 
+    w = pywt.Wavelet('db3')
+
 
     def setup_axes(fig, rect):
         
@@ -344,6 +359,19 @@ def new_save_movie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
         #for img in imgrid:
         imgrid[-1].tick_params(which='both',axis='both', direction='in')
         
+        
+###############4th IMAGE
+        ax = setup_axes(fig,224)
+
+        ax.set_aspect('equal')
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        
+        imgrid.append(ax.imshow((np.real(autocorr[0,:,:])),aspect='auto',cmap=jet,
+                                 interpolation='bicubic'))
+    
+        
+        cA, cD = pywt.dwt(data[0,nx/2,:], 'db2')
 
         fig.set_size_inches([5,3])
     
@@ -403,8 +431,10 @@ def new_save_movie(data,data2=None,dx=1,dy=1,xO=0,yO=0,
             #imgrid[2].plot(k.flatten(),power[n,:,:].flatten(),marker='.',linestyle='None',markersize = 1)
             #imgrid[2].set_ylim(np.max(np.min(power[:,:,:]),np.max(power[:,:,:])))
             #imgrid[2].set_ylim(
+            tmp = autocorr[n,:,:]
+            imgrid[3].set_data(np.log(np.real(tmp)))
         
-        ani = animation.FuncAnimation(fig,update_img,30)
+        ani = animation.FuncAnimation(fig,update_img,nt-1)
         #writer = animation.writers[encoder]()
 
         

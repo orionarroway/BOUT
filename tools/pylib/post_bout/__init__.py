@@ -90,3 +90,8 @@ try:
     from rotate2 import rotate
 except:
     print "No rotate"
+
+try:
+    from frame import Frame
+except:
+    print "No frame"

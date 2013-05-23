@@ -28,7 +28,7 @@ echo Running with NP = $NP
 
 rm -rf data*
 
-zlist=( 1 2 4 8 16 32 64 128 256 )
+zlist=(2)
 
 for zval in ${zlist[@]}
 do

@@ -372,7 +372,7 @@ int physics_run(BoutReal t)
   ddt(Ni) = 0.0;
   if(evolve_ni) {
     ddt(Ni) -= vE_Grad(Ni0, phi);
-
+    //ddt(Ni) += 
     /*
       ddt(Ni) -= vE_Grad(Ni, phi0) + vE_Grad(Ni0, phi) + vE_Grad(Ni, phi);
       ddt(Ni) -= Vpar_Grad_par(Vi, Ni0) + Vpar_Grad_par(Vi0, Ni) + Vpar_Grad_par(Vi, Ni);
