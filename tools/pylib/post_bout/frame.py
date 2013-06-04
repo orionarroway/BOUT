@@ -167,11 +167,11 @@ class Frame(np.ndarray):
         if hasattr(self,'t_array'):
             try:
                 #print t
-                self.tcount = self.ax.annotate(str('%03d' % self.t_array[t]),(.1,.1),
-                                 xycoords='figure fraction',fontsize = 20)
+                self.tcount = self.ax.annotate(str('%03f' % self.t_array[t]),(.1,.1),
+                                 xycoords='figure fraction',fontsize = 15)
             except:
-                self.tcount = self.ax.annotate(str('%03d' % t),(.1,.1),
-                                 xycoords='figure fraction',fontsize = 20)
+                self.tcount = self.ax.annotate(str('%03f' % t),(.1,.1),
+                                 xycoords='figure fraction',fontsize = 15)
             
 
     def update(self):
@@ -233,10 +233,10 @@ class Frame(np.ndarray):
                 
                 try:
                 #print t
-                    self.tcount = self.ax.annotate(str('%03d' % self.t_array[t]),(.1,.1),
+                    self.tcount = self.ax.annotate(str('%g' % self.t_array[t]),(.1,.1),
                                      xycoords='figure fraction',fontsize = 20)
                 except:
-                    self.tcount = self.ax.annotate(str('%03d' % t),(.1,.1),
+                    self.tcount = self.ax.annotate(str('%g' % t),(.1,.1),
                                  xycoords='figure fraction',fontsize = 20)    
 #        if self.ndim ==1:
 
