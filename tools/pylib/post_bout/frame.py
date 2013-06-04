@@ -75,6 +75,7 @@ class Frame(np.ndarray):
                 
         if obj.ndim == 3:   
             obj.nt,obj.nx, obj.ny = obj.shape
+            obj.amp = abs(obj).max(1).max(1)
         elif obj.ndim == 2:
             obj.nt, obj.nx = obj.shape
             obj.x = np.arange(obj.nx)
@@ -108,13 +109,14 @@ class Frame(np.ndarray):
         #     fig.add_subplot(ax)
          
         # ax = setup_axes(fig,221)  
-        print self.t
+       
         self.ax = fig.add_subplot(rect)
-        
+        t = self.t
+
         #print self.interpolation
         
         if self.ndim == 3:
-            self.img = self.ax.imshow(self[self.t,:,:].real,aspect= self.aspect,cmap = self.cmap,
+            self.img = self.ax.imshow((self[t,:,:].real)/self.amp[t],aspect= self.aspect,cmap = self.cmap,
                                       interpolation=self.interpolation,origin='lower')
             # if hasattr(self,'mask'):
             #      thres = 1.05*np.min(self[self.t,:,:])
@@ -153,7 +155,7 @@ class Frame(np.ndarray):
             self.ax.plot(self.real)
             self.img, = self.ax.plot(self.t,self[self.t].real,color='red',marker='o', markeredgecolor='r')
         elif self.ndim == 2:
-            t = self.t
+           
             self.img, = self.ax.plot(self.x,self[t,:].real)
             if hasattr(self,'sigma'):
                 print self.sigma.shape
@@ -161,16 +163,25 @@ class Frame(np.ndarray):
                     self.x,self[t,:]+self.sigma[t,:], 
                     self[t,:]-self.sigma[t,:], 
                     facecolor='yellow', alpha=0.5)]
-            
+        
+        if hasattr(self,'t_array'):
+            try:
+                #print t
+                self.tcount = self.ax.annotate(str('%03d' % self.t_array[t]),(.1,.1),
+                                 xycoords='figure fraction',fontsize = 20)
+            except:
+                self.tcount = self.ax.annotate(str('%03d' % t),(.1,.1),
+                                 xycoords='figure fraction',fontsize = 20)
             
 
     def update(self):
         if self.t < self.nt:
             self.t +=1
-            
+            t = self.t
+
             #3D 
             if self.ndim ==3:
-                (self.img).set_data(self[self.t,:,:].real)
+                (self.img).set_data((self[self.t,:,:].real)/self.amp[t])
                 # if hasattr(self,'mask'):
                 #     thres = 1.1*np.min(self[self.t,:,:])
                 #     masked_array=np.ma.masked_where(self[self.t,:,:] < thres,self[self.t,:,:])
@@ -217,7 +228,16 @@ class Frame(np.ndarray):
             elif self.ndim ==1:
                 self.img.set_data(self.t,self[self.t])
 
+            if hasattr(self,'t_array'):
+                self.ax.texts.remove(self.tcount) 
                 
+                try:
+                #print t
+                    self.tcount = self.ax.annotate(str('%03d' % self.t_array[t]),(.1,.1),
+                                     xycoords='figure fraction',fontsize = 20)
+                except:
+                    self.tcount = self.ax.annotate(str('%03d' % t),(.1,.1),
+                                 xycoords='figure fraction',fontsize = 20)    
 #        if self.ndim ==1:
 
     
