@@ -92,6 +92,6 @@ except:
     print "No rotate"
 
 try:
-    from frame import Frame
+    from frame import Frame, FrameMovie
 except:
     print "No frame"
