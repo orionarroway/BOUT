@@ -30,33 +30,29 @@
 
 #include <fieldperp.hxx>
 #include <utils.hxx>
+#include <boutexception.hxx>
 
 extern BoutReal** rmatrix(int nx, int ny);
 
-FieldPerp::FieldPerp()
-{
+FieldPerp::FieldPerp() {
   data = (BoutReal**) NULL;
   yindex = -1;
 }
 
-FieldPerp::FieldPerp(const FieldPerp &f)
-{
+FieldPerp::FieldPerp(const FieldPerp &f) {
   data = (BoutReal**) NULL;
   *this = f;
 }
 
-FieldPerp::~FieldPerp()
-{
+FieldPerp::~FieldPerp() {
   freeData();
 }
 
-FieldPerp* FieldPerp::clone() const
-{
+FieldPerp* FieldPerp::clone() const {
   return new FieldPerp(*this);
 }
 
-void FieldPerp::set(const Field3D &f, int y)
-{
+void FieldPerp::set(const Field3D &f, int y) {
   int jx, jz;
   BoutReal ***d = f.getData();
 
@@ -74,34 +70,43 @@ void FieldPerp::set(const Field3D &f, int y)
       data[jx][jz] = d[jx][y][jz];
 }
 
-void FieldPerp::allocate()
-{
+void FieldPerp::allocate() {
   allocData();
+}
+
+void FieldPerp::setIndex(int y) {
+  if((y < 0) || (y >= mesh->ngy) )
+    throw BoutException("FieldPerp setIndex to invalid value: %d", y);
+  yindex = y;
+}
+
+int FieldPerp::getIndex() const {
+  if((yindex < 0) || (yindex >= mesh->ngy) )
+    throw BoutException("FieldPerp has invalid yindex: %d", yindex);
+  return yindex;
 }
 
 /***************************************************************
  *                         OPERATORS 
  ***************************************************************/
 
-BoutReal* FieldPerp::operator[](int jx) const
-{
+BoutReal* FieldPerp::operator[](int jx) const {
+#if CHECK > 2
   if(data == (BoutReal**) NULL) {
-    error("FieldPerp: [] operator on empty data\n");
-    exit(1);
+    throw BoutException("FieldPerp: [] operator on empty data\n");
   }
   
   if((jx < 0) || (jx >= mesh->ngx)) {
-    error("FieldPerp: [] operator out of bounds\n");
-    exit(1);
+    throw BoutException("FieldPerp: [] operator out of bounds\n");
   }
+#endif
   
-  return(data[jx]);
+  return data[jx];
 }
 
 //////////////// ASSIGNMENT //////////////////
 
-FieldPerp& FieldPerp::operator=(const FieldPerp &rhs)
-{
+FieldPerp& FieldPerp::operator=(const FieldPerp &rhs) {
   int jx, jz;
   
   // Check for self-assignment
@@ -110,8 +115,7 @@ FieldPerp& FieldPerp::operator=(const FieldPerp &rhs)
 
   if(rhs.data == (BoutReal**) NULL) {
     // No data
-    error("FieldPerp: No data in assignment from FieldPerp");
-    return(*this);
+    throw BoutException("FieldPerp: No data in assignment from FieldPerp");
   }
 
   allocData();
@@ -125,8 +129,7 @@ FieldPerp& FieldPerp::operator=(const FieldPerp &rhs)
   return(*this);
 }
 
-FieldPerp & FieldPerp::operator=(const BoutReal rhs)
-{
+FieldPerp & FieldPerp::operator=(const BoutReal rhs) {
   int jx, jz;
 
   allocData();
@@ -140,8 +143,7 @@ FieldPerp & FieldPerp::operator=(const BoutReal rhs)
 
 ////////////////// ADDITION //////////////////////
 
-FieldPerp & FieldPerp::operator+=(const FieldPerp &rhs)
-{
+FieldPerp & FieldPerp::operator+=(const FieldPerp &rhs) {
   int jx, jz;
   
   if(rhs.data == (BoutReal**) NULL) {
@@ -921,3 +923,8 @@ const FieldPerp operator^(const BoutReal lhs, const FieldPerp &rhs)
   return(result);
 }
 
+const FieldPerp copy(const FieldPerp &f) {
+  FieldPerp fcopy = f;
+  fcopy.allocate();
+  return fcopy;
+}

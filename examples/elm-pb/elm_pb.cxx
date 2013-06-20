@@ -1071,6 +1071,7 @@ int physics_run(BoutReal t)
 	  for(int k=0;k<mesh->ngz-1;k++) {
 	    if(mesh->firstX())
 	      Jpar[i][j][k] = 0.0;
+
 	    if(mesh->lastX())
 	      Jpar[mesh->ngx-1-i][j][k] = 0.0;
 	  }

@@ -32,6 +32,8 @@ class Field3D;
 #include "stencils.hxx"
 #include "bout_types.hxx"
 
+#include "bout/deprecated.hxx"
+
 /// Structure to store blocks of memory for Field3D class
 struct memblock3d {
   /// memory block
@@ -69,7 +71,7 @@ class Field3D : public Field, public FieldData {
   /// Destructor
   ~Field3D();
 
-  Field3D* clone() const;
+  DEPRECATED(Field3D* clone() const);
 
   /// Ensures that memory is allocated
   void allocate() const;
@@ -91,7 +93,12 @@ class Field3D : public Field, public FieldData {
   
   /// Allows access to internal data using square-brackets
   BoutReal** operator[](int jx) const;
-  BoutReal& operator[](bindex &bx) const;
+  
+  BoutReal& operator[](bindex &bx);
+  const BoutReal& operator[](bindex &bx) const;
+  
+  BoutReal& operator()(int jx, int jy, int jz);
+  const BoutReal& operator()(int jx, int jy, int jz) const;
 
   /// Assignment operators
   Field3D & operator=(const Field3D &rhs);
@@ -201,28 +208,11 @@ class Field3D : public Field, public FieldData {
   BoutReal patchmax(bool allpe=false) const;
 
 
-  // Friend operators
-  friend const Field3D operator-(const BoutReal &lhs, const Field3D &rhs);
-  friend const Field3D operator+(const BoutReal &lhs, const Field3D &rhs);
-
   // Friend functions
-
-  friend const Field3D exp(const Field3D &f);
-  friend const Field3D log(const Field3D &f);
-  
-  friend const Field3D sin(const Field3D &f);
-  friend const Field3D cos(const Field3D &f);
-  friend const Field3D tan(const Field3D &f);
-
-  friend const Field3D sinh(const Field3D &f);
-  friend const Field3D cosh(const Field3D &f);
-  friend const Field3D tanh(const Field3D &f);
 
   friend const Field3D filter(const Field3D &var, int N0);
   friend const Field3D lowPass(const Field3D &var, int zmax);
   friend const Field3D lowPass(const Field3D &var, int zmax, int zmin);
-
-  friend bool finite(const Field3D &var);
 
   // FieldData virtual functions
   
@@ -293,14 +283,32 @@ class Field3D : public Field, public FieldData {
 
 // Non-member overloaded operators
 
+const Field3D operator-(const BoutReal &lhs, const Field3D &rhs);
+const Field3D operator+(const BoutReal &lhs, const Field3D &rhs);
 const Field3D operator*(const BoutReal lhs, const Field3D &rhs);
 const Field3D operator/(const BoutReal lhs, const Field3D &rhs);
 const Field3D operator^(const BoutReal lhs, const Field3D &rhs);
 
 // Non-member functions
+const Field3D SQ(const Field3D &f);
 const Field3D sqrt(const Field3D &f);
 const Field3D abs(const Field3D &f);
 BoutReal min(const Field3D &f, bool allpe=false);
 BoutReal max(const Field3D &f, bool allpe=false);
+
+const Field3D exp(const Field3D &f);
+const Field3D log(const Field3D &f);
+
+const Field3D sin(const Field3D &f);
+const Field3D cos(const Field3D &f);
+const Field3D tan(const Field3D &f);
+
+const Field3D sinh(const Field3D &f);
+const Field3D cosh(const Field3D &f);
+const Field3D tanh(const Field3D &f);
+
+bool finite(const Field3D &var);
+
+const Field3D copy(const Field3D &f);
 
 #endif /* __FIELD3D_H__ */

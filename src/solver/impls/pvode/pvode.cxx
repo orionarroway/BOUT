@@ -22,7 +22,7 @@
  * along with BOUT++.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **************************************************************************/
-
+#include <boutcomm.hxx>
 #include "pvode.hxx"
 
 #ifdef BOUT_HAS_PVODE
@@ -113,7 +113,8 @@ int PvodeSolver::init(rhsfunc f, bool restarting, int nout, BoutReal tstep) {
 	       n3d, n2d, neq, local_N);
 
   // Set machEnv block
-  machEnv = (machEnvType) PVecInitMPI(BoutComm::get(), local_N, neq, &argc, &argv);
+  machEnv = (machEnvType) PVecInitMPI(BoutComm::get(), local_N, neq, pargc, pargv);
+  // machEnv = (machEnvType) PVecInitMPI(BoutComm::get(), local_N, neq, &argc, &argv);
 
   if (machEnv == NULL) {
     throw BoutException("\tError: PVecInitMPI failed\n");

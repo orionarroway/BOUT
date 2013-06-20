@@ -53,10 +53,9 @@ const char DEFAULT_OPT[] = "BOUT.inp";
 #include <derivs.hxx>
 #include <msg_stack.hxx>
 
-#include <boundary_factory.hxx>
-#include <boundary_standard.hxx>
-
 #include <bout/sys/timer.hxx>
+
+#include <boundary_factory.hxx>
 
 #include <bout/petsclib.hxx>
 
@@ -89,7 +88,18 @@ char get_spin();                    // Produces a spinning bar
 
 int bout_monitor(Solver *solver, BoutReal t, int iter, int NOUT); // Function called by the solver each timestep
 
-void BoutInitialise(int argc, char **argv) {
+/*!
+  Initialise BOUT++
+  
+  Inputs
+  ------
+  
+  The command-line arguments argc and argv are passed by
+  reference, and pointers to these will be stored in various
+  places in BOUT++.
+  
+ */
+void BoutInitialise(int &argc, char **&argv) {
 
   string dump_ext; ///< Extensions for restart and dump files
 
@@ -267,16 +277,6 @@ void BoutInitialise(int argc, char **argv) {
     mesh = Mesh::create();  ///< Create the mesh
     mesh->load();           ///< Load from sources. Required for Field initialisation
     mesh->outputVars(dump); ///< Save mesh configuration into output file
-
-    /// Setup the boundaries
-    BoundaryFactory* bndry = BoundaryFactory::getInstance();
-    bndry->add(new BoundaryDirichlet(), "dirichlet");
-    bndry->add(new BoundaryNeumann(), "neumann");
-    bndry->add(new BoundaryRobin(), "robin");
-    bndry->add(new BoundaryConstGradient(), "constgradient");
-    bndry->add(new BoundaryZeroLaplace(), "zerolaplace");
-    bndry->add(new BoundaryConstLaplace(), "constlaplace");
-    bndry->addMod(new BoundaryRelax(10.), "relax");
     
   }catch(BoutException &e) {
     output << "Error encountered during initialisation\n";

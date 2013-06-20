@@ -36,6 +36,8 @@ class Field3D; //#include "field3d.hxx"
 #include "fieldperp.hxx"
 #include "stencils.hxx"
 
+#include "bout/deprecated.hxx"
+
 #include <stack>
 using std::stack;
 
@@ -52,7 +54,7 @@ class Field2D : public Field, public FieldData {
   Field2D(BoutReal val);
   ~Field2D();
 
-  Field2D* clone() const;
+  DEPRECATED(Field2D* clone() const);
 
   BoutReal **getData() const; // Remove this!
   
@@ -70,7 +72,10 @@ class Field2D : public Field, public FieldData {
   Field2D & operator=(const Field2D &rhs);
   Field2D & operator=(const BoutReal rhs);
 
+  // Data indexing
   BoutReal* operator[](int jx) const;
+  BoutReal& operator()(int jx, int jy);
+  const BoutReal& operator()(int jx, int jy) const;
 
   Field2D & operator+=(const Field2D &rhs);
   Field2D & operator+=(const BoutReal rhs);
@@ -178,7 +183,9 @@ class Field2D : public Field, public FieldData {
   
   void applyBoundary();
   void applyBoundary(const string &condition);
+  void applyBoundary(const string &region, const string &condition);
   void applyTDerivBoundary();
+  void setBoundaryTo(const Field2D &f2d); ///< Copy the boundary region
   
  private:
   BoutReal **data;
@@ -209,5 +216,6 @@ BoutReal min(const Field2D &f, bool allpe=false);
 BoutReal max(const Field2D &f, bool allpe=false);
 bool finite(const Field2D &f);
 
+const Field2D copy(const Field2D &f);
 
 #endif /* __FIELD2D_H__ */

@@ -118,6 +118,8 @@ const Field3D Laplacian::solve(const Field3D &b) {
   msg_stack.pop();
 #endif
 
+  x.setLocation(b.getLocation());
+
   return x;
 }
 
@@ -149,6 +151,8 @@ const Field3D Laplacian::solve(const Field3D &b, const Field3D &x0) {
 #ifdef CHECK
   msg_stack.pop();
 #endif
+
+  x.setLocation(b.getLocation());
 
   return x;
 }
@@ -256,7 +260,7 @@ void Laplacian::tridagMatrix(dcomplex **avec, dcomplex **bvec, dcomplex **cvec,
       if(mesh->firstX()) {
 	// INNER BOUNDARY ON THIS PROCESSOR
 	
-	if(!(flags & INVERT_IN_RHS)) {
+	if(!(flags & (INVERT_IN_RHS | INVERT_IN_SET))) {
 	  for(ix=0;ix<xbndry;ix++)
 	    bk[kz][ix] = 0.;
 	}
@@ -272,7 +276,7 @@ void Laplacian::tridagMatrix(dcomplex **avec, dcomplex **bvec, dcomplex **cvec,
 	      cvec[kz][ix] = -1.;
 	    }
 	  }else {
-	    // Zero value at inner boundary
+	    // Zero value at inner boundary or INVERT_IN_SET
 	    for (ix=0;ix<xbndry;ix++){
 	      avec[kz][ix] = 0.;
 	      bvec[kz][ix] = 1.;
@@ -299,7 +303,7 @@ void Laplacian::tridagMatrix(dcomplex **avec, dcomplex **bvec, dcomplex **cvec,
 	      cvec[kz][ix] = -exp(-1.0*sqrt(mesh->g33[ix][jy]/mesh->g11[ix][jy])*kwave*mesh->dx[ix][jy]);
 	    }
 	  }else {
-	    // Zero value at inner boundary
+	    // Zero value at inner boundary or INVERT_IN_SET
 	    for (ix=0;ix<xbndry;ix++){
 	      avec[kz][ix]=dcomplex(0.,0.);
 	      bvec[kz][ix]=dcomplex(1.,0.);
@@ -310,7 +314,7 @@ void Laplacian::tridagMatrix(dcomplex **avec, dcomplex **bvec, dcomplex **cvec,
       }else if(mesh->lastX()) {
 	// OUTER BOUNDARY
       
-	if(!(flags & INVERT_OUT_RHS)) {
+	if(!(flags & (INVERT_OUT_RHS | INVERT_OUT_SET))) {
 	  for (ix=0;ix<xbndry;ix++)
 	    bk[kz][ncx-ix] = 0.;
 	}
@@ -326,7 +330,7 @@ void Laplacian::tridagMatrix(dcomplex **avec, dcomplex **bvec, dcomplex **cvec,
 	      avec[kz][ncx-ix]=dcomplex(-1.,0.);
 	    }
 	  }else {
-	    // Zero value at outer boundary
+	    // Zero value at outer boundary or INVERT_OUT_SET
 	    for (ix=0;ix<xbndry;ix++){
 	      cvec[kz][ncx-ix]=dcomplex(0.,0.);
 	      bvec[kz][ncx-ix]=dcomplex(1.,0.);
@@ -352,7 +356,7 @@ void Laplacian::tridagMatrix(dcomplex **avec, dcomplex **bvec, dcomplex **cvec,
 	      cvec[kz][ncx-ix] = 0.0;
 	    }
 	  }else {
-	    // Zero value at outer boundary
+	    // Zero value at outer boundary or LAPLACE_OUT_SET
 	    for (ix=0;ix<xbndry;ix++){
 	      cvec[kz][ncx-ix]=dcomplex(0.,0.);
 	      bvec[kz][ncx-ix]=dcomplex(1.,0.);
@@ -373,12 +377,11 @@ void Laplacian::tridagMatrix(dcomplex **avec, dcomplex **bvec, dcomplex **cvec,
 
 /// Returns the coefficients for a tridiagonal matrix for laplace. Used by Delp2 too
 void laplace_tridag_coefs(int jx, int jy, int jz, dcomplex &a, dcomplex &b, dcomplex &c, 
-                          const Field2D *ccoef, const Field2D *d)
-{
+                          const Field2D *ccoef, const Field2D *d) {
   Laplacian::defaultInstance()->tridagCoefs(jx,jy, jz, a, b, c, ccoef, d);
 }
 
-int invert_laplace(const FieldPerp &b, FieldPerp &x, int flags, const Field2D *a, const Field2D *c, const Field2D *d){
+int invert_laplace(const FieldPerp &b, FieldPerp &x, int flags, const Field2D *a, const Field2D *c, const Field2D *d) {
   
   Laplacian *lap = Laplacian::defaultInstance();
   

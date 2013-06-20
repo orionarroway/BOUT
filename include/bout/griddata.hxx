@@ -23,16 +23,18 @@
  *
  *******************************************************************************/
 
+
+class GridDataSource;
+
 #ifndef __GRIDDATA_H__
 #define __GRIDDATA_H__
-
-#include "field2d.hxx"
-#include "vector2d.hxx"
 
 #include "options.hxx"
 
 #include "dataformat.hxx"
 #include "bout_types.hxx"
+
+#include "mesh.hxx"
 
 #include <list>
 
@@ -48,10 +50,13 @@ class GridDataSource {
   
   virtual bool hasVar(const string &name) = 0; ///< Test if source can supply a variable
   
-  virtual vector<int> getSize(const char *name) = 0; ///< Get size of the variable
+  virtual vector<int> getSize(const string &name) = 0; ///< Get size of the variable
 
   /// Set the (x,y,z) origin for all subsequent calls
   virtual bool setGlobalOrigin(int x = 0, int y = 0, int z = 0) = 0;
+
+  /// Specify a mesh. Required for GridFromOptions
+  virtual bool setMesh(Mesh *m) {return true;}
   
   /// Get data from the source
   virtual bool fetch(int *var, const char *name, int lx = 1, int ly = 0, int lz = 0) = 0;
@@ -85,7 +90,7 @@ class GridFile : public GridDataSource {
   
   virtual bool hasVar(const string &name);
   
-  virtual vector<int> getSize(const char *name);
+  virtual vector<int> getSize(const string &name);
 
   virtual bool setGlobalOrigin(int x = 0, int y = 0, int z = 0);
 
@@ -110,10 +115,12 @@ public:
   
   bool hasVar(const string &name);
   
-  vector<int> getSize(const char *name); ///< Get size of the variable
+  vector<int> getSize(const string &name); ///< Get size of the variable
 
   /// Set the (x,y,z) origin for all subsequent calls
   bool setGlobalOrigin(int x = 0, int y = 0, int z = 0) {return true;}
+
+  bool setMesh(Mesh *m) {fieldmesh = m; return true;}
   
   /// Get data from the source
   bool fetch(int *var, const char *name, int lx = 1, int ly = 0, int lz = 0);
@@ -122,6 +129,7 @@ public:
   bool fetch(BoutReal *var, const string &name, int lx = 1, int ly = 0, int lz = 0);
 private:
   Options *options;
+  Mesh *fieldmesh;
 };
 
 class GridDataGroup : GridDataSource {

@@ -139,9 +139,9 @@ Field2D & Field2D::operator=(const BoutReal rhs) {
   return(*this);
 }
 
-BoutReal* Field2D::operator[](int jx) const
-{
+////////////// Indexing ///////////////////
 
+BoutReal* Field2D::operator[](int jx) const {
 #ifdef CHECK
 
   if(data == (BoutReal**) NULL)
@@ -153,6 +153,32 @@ BoutReal* Field2D::operator[](int jx) const
   
   return(data[jx]);
 }
+
+BoutReal& Field2D::operator()(int jx, int jy) {
+#if CHECK > 2
+  if(data == (BoutReal**) NULL)
+    throw BoutException("Field2D: [] operator on empty data");
+  if((jx < 0) || (jx >= mesh->ngx) || (jy < 0) || (jy >= mesh->ngy) )
+    throw BoutException("Field2D: (%d, %d) index out of bounds (%d , %d)\n", 
+                        jx, jy, mesh->ngx, mesh->ngy);
+#endif
+  
+  return data[jx][jy];
+}
+
+const BoutReal& Field2D::operator()(int jx, int jy) const {
+#if CHECK > 2
+  if(data == (BoutReal**) NULL)
+    throw BoutException("Field2D: [] operator on empty data");
+  if((jx < 0) || (jx >= mesh->ngx) || (jy < 0) || (jy >= mesh->ngy) )
+    throw BoutException("Field2D: (%d, %d) index out of bounds (%d , %d)\n", 
+                        jx, jy, mesh->ngx, mesh->ngy);
+#endif
+  
+  return data[jx][jy];
+}
+
+///////// Operators
 
 Field2D & Field2D::operator+=(const Field2D &rhs) {
 #ifdef CHECK
@@ -805,12 +831,15 @@ BoutReal Field2D::max(bool allpe) const {
     msg_stack.push("Field2D::Max()");
 #endif
 
-  BoutReal result = data[0][0];
+  BoutReal result = data[mesh->xstart][mesh->ystart];
 
-  for(int jx=0;jx<mesh->ngx;jx++)
-    for(int jy=0;jy<mesh->ngy;jy++)
+  for(int jx=mesh->xstart;jx<mesh->xend;jx++)
+    for(int jy=mesh->ystart;jy<mesh->yend;jy++) {
+      //if(!isfinite(data[jx][jy]))
+      //  output.write("Non-finite number at %d,%d\n", jx, jy);
       if(data[jx][jy] > result)
 	result = data[jx][jy];
+    }
   
   if(allpe) {
     // MPI reduce
@@ -982,9 +1011,72 @@ void Field2D::applyBoundary(const string &condition) {
 #endif
 }
 
+void Field2D::applyBoundary(const string &region, const string &condition) {
+  if(data == NULL)
+    return;
+
+  /// Get the boundary factory (singleton)
+  BoundaryFactory *bfact = BoundaryFactory::getInstance();
+  
+  /// Get the mesh boundary regions
+  vector<BoundaryRegion*> reg = mesh->getBoundaries();
+  
+  /// Loop over the mesh boundary regions
+  for(vector<BoundaryRegion*>::iterator it=reg.begin(); it != reg.end(); it++) {
+    if((*it)->label.compare(region) == 0) {
+      BoundaryOp* op = bfact->create(condition, (*it));
+      op->apply(*this);
+      delete op;
+      break;
+    }
+  }
+  
+  // Set the corners to zero
+  for(int jx=0;jx<mesh->xstart;jx++) {
+    for(int jy=0;jy<mesh->ystart;jy++) {
+      data[jx][jy] = 0.;
+    }
+    for(int jy=mesh->yend+1;jy<mesh->ngy;jy++) {
+      data[jx][jy] = 0.;
+    }
+  }
+  for(int jx=mesh->xend+1;jx<mesh->ngx;jx++) {
+    for(int jy=0;jy<mesh->ystart;jy++) {
+      data[jx][jy] = 0.;
+    }
+    for(int jy=mesh->yend+1;jy<mesh->ngy;jy++) {
+      data[jx][jy] = 0.;
+    }
+  }
+}
+
 void Field2D::applyTDerivBoundary() {
   for(vector<BoundaryOp*>::iterator it = bndry_op.begin(); it != bndry_op.end(); it++)
     (*it)->apply_ddt(*this);
+}
+
+void Field2D::setBoundaryTo(const Field2D &f2d) {
+  allocate(); // Make sure data allocated
+#ifdef CHECK
+  msg_stack.push("Field2D::setBoundary(const Field2D&)");
+  
+  if(f2d.data == NULL)
+    throw BoutException("Setting boundary condition to empty data\n");
+#endif
+
+  /// Get the mesh boundary regions
+  vector<BoundaryRegion*> reg = mesh->getBoundaries();
+  
+  /// Loop over boundary regions
+  for(vector<BoundaryRegion*>::iterator it = reg.begin(); it != reg.end(); it++) {
+    BoundaryRegion* bndry= *it;
+    /// Loop within each region
+    for(bndry->first(); !bndry->isDone(); bndry->next())
+      data[bndry->x][bndry->y] = f2d.data[bndry->x][bndry->y];
+  }
+#ifdef CHECK
+  msg_stack.pop();
+#endif
 }
 
 void Field2D::cleanup() {
@@ -1268,5 +1360,11 @@ const Field2D tanh(const Field2D &f) {
     for(int jy=0;jy<mesh->ngy;jy++)
       result.data[jx][jy] = ::tanh(f.data[jx][jy]);
 
+  return result;
+}
+
+const Field2D copy(const Field2D &f) {
+  Field2D result = f;
+  result.allocate();
   return result;
 }
