@@ -1,5 +1,5 @@
 #include <mpi.h>
-#include <python2.6/Python.h>
+#include <python2.7/Python.h>
 #include <bout.hxx>
 //#include <boutmain.hxx>
 

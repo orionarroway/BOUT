@@ -61,7 +61,7 @@ upwind = W3
 # Solver settings
 
 [solver]
-type = cvode
+#type = cvode
 #type = petsc-3.2
 # mudq, mldq, mukeep, mlkeep preconditioner options
 ATOL = 1.0e-3 # absolute tolerance
