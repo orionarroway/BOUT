@@ -6,9 +6,12 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.colors as colors
+
+
 try:
     import matplotlib.artist as artist 
     import matplotlib.ticker as ticker
+    from matplotlib.ticker import FormatStrFormatter
     import matplotlib.animation as animation  
     from matplotlib.lines import Line2D
     import mpl_toolkits.axisartist as axisartist
@@ -27,24 +30,64 @@ class Frame(np.ndarray):
     def __new__(cls, data,meta=None):
         # Input array is an already formed ndarray instance
         # We first cast to be our class type
-        
+        #obj = np.asarray(data).view(cls)  
         obj = np.asarray(data).view(cls)
         # add the new attribute to the created instance
         
         if meta is not None:
             for k, v in meta.items():
                 setattr(obj, k, v)
-    
-        if data.ndim == 3:   
-            obj.nt,obj.nx, obj.ny = obj.shape
-            nt,nx,ny = data.shape
-            
+        
+        defaults = {'dx':1,'x0':0,'dy':1,'y0':0,'stationary':False,
+                    'yscale':'linear','title':'','xlabel':'','ylabel':'',
+                    'style':'','fontsz':10,'ticksize':6}   
 
-        elif obj.ndim == 2:
-            obj.nt, obj.nx = obj.shape
-        elif obj.ndim == 1:
-            obj.nt = obj.shape[0]
-            
+        for key,val in defaults.items():
+            if not hasattr(obj,key):
+                print 'setting: ',key,val
+                setattr(obj, key, val)
+   
+        if not obj.stationary:   
+            if obj.ndim == 3:   
+                obj.nt,obj.nx, obj.ny = obj.shape
+                nt,nx,ny = obj.shape
+                obj.amp = abs(obj).max(1).max(1)
+                
+                #for now limit ourselves to 0 or 1D dx dy arrays
+                obj.x = obj.dx*np.arange(obj.nx)
+                obj.x = np.repeat(obj.x,obj.ny)
+                obj.x = obj.x.reshape(nx,ny)
+                
+                obj.y = obj.dy*np.arange(obj.ny)
+                obj.y = np.repeat(obj.y,obj.nx)
+                obj.y = np.transpose(obj.y.reshape(ny,nx))
+        
+                 
+                
+                #print obj.dx,obj.dy
+            elif obj.ndim == 2:
+                obj.nt, obj.nx = obj.shape
+                obj.x = obj.x0+obj.dx*np.arange(obj.nx)
+                obj.Lx = obj.x.max()
+                
+            elif obj.ndim == 1:
+                obj.nt = obj.shape[0]        
+        else:
+            if obj.ndim == 3:   
+                obj.nx,obj.ny, obj.nz = obj.shape
+                obj.amp = abs(obj).max()
+            elif obj.ndim == 2:
+                obj.nx, obj.ny = obj.shape
+                obj.x = obj.dx*np.arange(obj.nx)
+                obj.y = obj.dy*np.arange(obj.ny)
+            elif obj.ndim == 1:
+                obj.nx = obj.shape[0] 
+                obj.x = obj.x0+obj.dx*np.arange(obj.nx)
+            if not hasattr(obj,'nt'):
+                obj.nt = 1
+    
+        print 'nt: ', obj.nt  
+      
         if hasattr(obj, 'center'):
             print nx,ny
             if obj.center==True:
@@ -56,7 +99,7 @@ class Frame(np.ndarray):
             data = data[:,obj.nx/2-obj.nx/16:obj.nx/2+obj.nx/16,
                           obj.ny/2-obj.ny/16:obj.ny/2+obj.ny/16]
      
-        obj = np.asarray(data).view(cls)  
+        #obj = np.asarray(data).view(cls)  
         
         if meta is not None:
             for k, v in meta.items():
@@ -66,29 +109,12 @@ class Frame(np.ndarray):
         if not hasattr(obj,'data_c'):
         #     print 'no data_c'
             obj.data_c = data
-        
-        #print meta.keys()
-        #print obj.data_c.shape    
-        # if meta is not None:
-        #     for k, v in meta.items():
-        #         setattr(obj, k, v)
-                
-        if obj.ndim == 3:   
-            obj.nt,obj.nx, obj.ny = obj.shape
-            obj.amp = abs(obj).max(1).max(1)
-        elif obj.ndim == 2:
-            obj.nt, obj.nx = obj.shape
-            obj.x = np.arange(obj.nx)
-        elif obj.ndim == 1:
-            obj.nt = obj.shape[0]        
-                
-        
-    
+      
         print 'nt: ', obj.nt  
         
 
         #params for 2d (imshow)
-        obj.interpolation='nearest'
+        obj.interpolation='bicubic'
         obj.aspect = 'auto'
         obj.cmap= plt.get_cmap('jet',2000) 
         obj.t = 0
@@ -110,14 +136,44 @@ class Frame(np.ndarray):
          
         # ax = setup_axes(fig,221)  
        
-        self.ax = fig.add_subplot(rect)
+        if self.ax == None:
+            self.ax = fig.add_subplot(rect)
+        
+            
         t = self.t
 
         #print self.interpolation
         
         if self.ndim == 3:
-            self.img = self.ax.imshow((self[t,:,:].real)/self.amp[t],aspect= self.aspect,cmap = self.cmap,
-                                      interpolation=self.interpolation,origin='lower')
+            
+            if self.stationary:
+                #need vtk to to do good volume renderign here
+                self.img = self.ax.imshow((self[t,:,:].real)/self.amp[t],
+                                          aspect= self.aspect,cmap = self.cmap,
+                                          interpolation=self.interpolation,
+                                          origin='lower')
+                
+            else:  
+                print np.min(self.x)
+                self.img = self.ax.imshow(
+                    ((self[t,:,:].real)/self.amp[t]).transpose(),
+                    aspect= self.aspect,cmap = self.cmap,
+                    interpolation=self.interpolation,
+                    extent=[self.x.min(),self.x.max(),
+                            self.y.min(),self.y.max()],
+                    origin='lower')
+                # self.img = self.ax.imshow((self[t,:,:].real)/self.amp[t],
+                #                           aspect= self.aspect,cmap = self.cmap,
+                #                           interpolation=self.interpolation,
+                #                           extent=[0,1,0,1],
+                #                           origin='lower')
+                
+                print self.x.shape, self.y.shape
+                # self.img = self.ax.contour(self.x,self.y,
+                #                            (self[t,:,:].real)/self.amp[t],
+                #                            aspect= self.aspect,cmap = self.cmap,
+                #                            interpolation=self.interpolation,
+                #                            origin='lower')
             # if hasattr(self,'mask'):
             #      thres = 1.05*np.min(self[self.t,:,:])
             #      masked_array=np.ma.masked_where(self[self.t,:,:]<thres,self[self.t,:,:])
@@ -148,31 +204,57 @@ class Frame(np.ndarray):
             if removeZero:   
                 levels = levels[np.where(np.min(np.abs(levels)) < np.abs(levels))]
             
-            self.cset = self.ax.contour(wire,self.cset_levels,colors='k',alpha=.7,linewidth=.1)
+            self.cset = self.ax.contour(self.x,self.y,wire,self.cset_levels,colors='k',alpha=.7,linewidth=.1)
             
         elif self.ndim == 1:
             #print 'ampdot: ', self.shape,self[self.t]
-            self.ax.plot(self.real)
-            self.img, = self.ax.plot(self.t,self[self.t].real,color='red',marker='o', markeredgecolor='r')
+            if self.stationary:
+                self.img, = self.ax.plot(self.x,self.real)
+            else:
+                self.ax.plot(self.real,self.style)
+                self.img, = self.ax.plot(self.t,self[self.t].real,color='red',marker='o', markeredgecolor='r',alpha=0)
+
+            if hasattr(self,'overplot'):
+                self.ax.plot(self.x,self.overplot)
+
         elif self.ndim == 2:
+            if self.stationary:
+                self.img = self.ax.imshow(self,aspect= self.aspect,cmap = self.cmap,
+                                           interpolation=self.interpolation,origin='lower')
+            else:
            
-            self.img, = self.ax.plot(self.x,self[t,:].real)
-            if hasattr(self,'sigma'):
-                print self.sigma.shape
-                self.img_sig = [self.ax.fill_between(
-                    self.x,self[t,:]+self.sigma[t,:], 
-                    self[t,:]-self.sigma[t,:], 
-                    facecolor='yellow', alpha=0.5)]
+                self.img, = self.ax.plot(self.x,self[t,:].real,self.style)
+                
+                if hasattr(self,'sigma'):
+                    print self.sigma.shape
+                    self.img_sig = [self.ax.fill_between(
+                            self.x,self[t,:]+self.sigma[t,:], 
+                            self[t,:]-self.sigma[t,:], 
+                            facecolor='yellow', alpha=0.5)]
+
+                if hasattr(self,'overplot'):
+                    self.ax.plot(self.x,self.overplot)
+
         
-        if hasattr(self,'t_arrays'):
+        if hasattr(self,'t_array'):
             try:
-                print t, 'adding tcount'
-                self.tcount = self.ax.annotate(str('%03f' % self.t_array[t]),
-                                               (.1,.1),xycoords='figure fraction',fontsize = 15)
+                #print t
+                self.tcount = self.ax.annotate(str('%03f' % self.t_array[t]),(.1,.1),
+                                               xycoords='figure fraction',fontsize = 15)
             except:
                 self.tcount = self.ax.annotate(str('%03f' % t),(.1,.1),
-                                 xycoords='figure fraction',fontsize = 15)
+                                               xycoords='figure fraction',fontsize = 15)
             
+            
+        self.ax.set_ylabel(self.ylabel,fontsize = self.fontsz,
+                           rotation='horizontal')
+        #self.ax.yaxis.set_label_coords(-0.050,.95)
+        self.ax.set_xlabel(self.xlabel,fontsize =self.fontsz)
+        self.ax.xaxis.set_label_coords(1.05, -0.0250)
+        self.ax.set_title(self.title,fontsize = self.fontsz)
+        #self.ax.xaxis('tight')
+        self.ax.set_yscale(self.yscale,linthreshy=1e-4)
+        self.ax.grid(True,linestyle='-',color='.75',alpha='.5')
 
     def update(self):
         if self.t < self.nt:
@@ -181,7 +263,7 @@ class Frame(np.ndarray):
 
             #3D 
             if self.ndim ==3:
-                (self.img).set_data((self[self.t,:,:].real)/self.amp[t])
+                (self.img).set_data(((self[self.t,:,:].real)/self.amp[t]).transpose())
                 # if hasattr(self,'mask'):
                 #     thres = 1.1*np.min(self[self.t,:,:])
                 #     masked_array=np.ma.masked_where(self[self.t,:,:] < thres,self[self.t,:,:])
@@ -200,13 +282,14 @@ class Frame(np.ndarray):
                 nlevels = self.nlevels
                 self.cset_levels = np.linspace(np.min(wire.real), 
                                                np.max(wire.real),nlevels)
-                self.cset = self.ax.contour(wire.real,self.cset_levels,colors='k',alpha=.7,linewidths=.5)
+                self.cset = self.ax.contour(self.x,self.y,wire.real,self.cset_levels,colors='k',alpha=.7,linewidths=.5)
             #2D
             elif self.ndim ==2:
                 print self.shape,self.t
                 t = self.t
-                self.img.set_data(np.arange(self.nx),self[t,:])
-                self.ax.set_ylim([np.min(self[t,:]),np.max(self[t,:])])
+                self.img.set_data(self.x,self[t,:])
+                #self.ax.axis('tight')
+                #self.ax.set_ylim([np.min(self[t,:]),np.max(self[t,:])])
 
                 #print dir(self.img_sig)
                 #print 'collections', self.ax.collections #self.ax.collections.count()
@@ -226,13 +309,16 @@ class Frame(np.ndarray):
                         
                 
             elif self.ndim ==1:
-                self.img.set_data(self.t,self[self.t])
+                if self.stationary:
+                    #self.ax.plot(self.x,self.real)
+                    #self.ax.set_ylim([np.min(self),np.max(self)])
+                    print ''
+                else:
+                    self.img.set_data(self.t,self[self.t])
 
             if hasattr(self,'t_array'):
-                try:
-                    self.ax.texts.remove(self.tcount) 
-                except:
-                    print 'nothign to remove'
+                self.ax.texts.remove(self.tcount) 
+                
                 try:
                 #print t
                     self.tcount = self.ax.annotate(str('%g' % self.t_array[t]),(.1,.1),
@@ -251,7 +337,7 @@ class Frame(np.ndarray):
 
 #class FrameArray(Frame):
 def FrameMovie(frames,moviename='output',fast=True,bk=None,outline=True,
-               t_array=None,encoder='ffmpeg',fps=5.0):
+               t_array=None,encoder='mencoder',fps=5.0,fig=None):
     
     if fast:
         dpi = 100
@@ -269,13 +355,13 @@ def FrameMovie(frames,moviename='output',fast=True,bk=None,outline=True,
 
         
     lin_formatter = ticker.ScalarFormatter()
-    lin_formatter.set_powerlimits((-2, 2))
-
+    lin_formatter.set_powerlimits((1, 1))
+    
 
     
     font = {'family' : 'normal',
             'weight' : 'normal',
-            'size'   : 4}
+            'size'   : frames[0].ticksize}
     
     axes = {'linewidth': .5}
     tickset ={'markeredgewidth': .25}
@@ -289,30 +375,54 @@ def FrameMovie(frames,moviename='output',fast=True,bk=None,outline=True,
     
     jet = plt.get_cmap('jet',2000) 
     
-    fig = plt.figure()
+    if fig == None:
+        fig = plt.figure()
         
-    nframes = len(frames)
+    
+    nframes = len(frames) 
+
+    shared = 0
+    for elem in frames:
+        if hasattr(elem,'shareax'):
+            if elem.shareax ==True:
+                shared = shared+1
+                
+
+    nframes = nframes - shared            
+
     nrow = int(round(np.sqrt(nframes)))
     ncol = int(np.ceil(float(nframes)/nrow))
 
+    print nframes
     
     def magic(numList):
         s = ''.join(map(str, numList))
         return int(s)
 
+    offset = 0
     for i,elem in enumerate(frames):
-        print 'i: ',i,nrow,ncol,nframes
-        elem.render(fig,magic([nrow,ncol,i+1]))
+    #for i in nframes:
+        print 'i: ',i,elem.ax,nrow,ncol,i
+        elem.render(fig,magic([nrow,ncol,i+1-offset]))
+        elem.ax.yaxis.set_major_formatter(lin_formatter)   
+        #elem.ax.yaxis.set_major_formatter(FormatStrFormatter('%1f'))
+        if hasattr(elem,'shareax'):
+            if elem.shareax ==True:
+                offset = offset +1
 
     def update_img(t):
+        print 't: ' ,t
         for elem in frames:
             elem.update()
 
-    nt = frames[0].nt        
-    print nt
+    nt = frames[0].nt 
+
     ani = animation.FuncAnimation(fig,update_img,nt-2)    
-    ani.save(moviename+'.mp4',writer=encoder,dpi=dpi,bitrate=20000,fps=fps)
+    ani.save(moviename+'.mp4',writer=encoder,dpi=dpi,bitrate=20000,fps=5)
     
     plt.close(fig)
+    
+    for i,elem in enumerate(frames):
+        elem.t = 0
     
     return 0        
