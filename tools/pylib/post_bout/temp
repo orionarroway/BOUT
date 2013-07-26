@@ -1,6 +1,4 @@
 import post_bout as pb
-meta
-
 
 s = subset(a,'dz',[0.1])
 logname='status_haswak.log'

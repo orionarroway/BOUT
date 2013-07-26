@@ -19,6 +19,8 @@ def basic_info(data,meta,rescale=True,rotate=False,user_peak=0,nonlinear=None):
     else:
         print "something with dimesions"
 
+    print data.shape
+   
     dc = data.mean(1).mean(1).mean(1) # there MUST be a way to indicate all axis at once
     amp = abs(data).max(1).max(1).max(1)
     dt = meta['dt']['v']

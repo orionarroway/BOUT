@@ -51,7 +51,6 @@ static int cvode_rhs(BoutReal t, N_Vector u, N_Vector du, void *user_data);
 static int cvode_bbd_rhs(CVINT Nlocal, BoutReal t, N_Vector u, N_Vector du, 
 			 void *user_data);
 
-
 static int cvode_pre(BoutReal t, N_Vector yy, N_Vector yp,
 		     N_Vector rvec, N_Vector zvec,
 		     BoutReal gamma, BoutReal delta, int lr,
@@ -302,7 +301,7 @@ int CvodeSolver::run(MonitorFunc monitor) {
   for(int i=0;i<NOUT;i++) {
 
     /// Run the solver for one output timestep
-    simtime = run(simtime + TIMESTEP); //actually call the solver here
+    simtime = run(simtime + TIMESTEP);
     iteration++;
 
     /// Check if the run succeeded
