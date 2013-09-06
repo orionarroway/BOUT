@@ -2399,6 +2399,30 @@ const Field3D log(const Field3D &f) {
   return result;
 }
 
+const Field3D lazy_log(const Field3D &f) {
+  msg_stack.push("log(Field3D)");
+  ASSERT1(f.isAllocated());
+  
+  Field3D result;
+  result.allocate();
+  
+  for(int jx=0;jx<mesh->ngx;jx++)
+    for(int jy=0;jy<mesh->ngy;jy++)
+      for(int jz=0;jz<mesh->ngz;jz++) {
+        //ASSERT2(f(jx, jy, jz) > 0.);
+	if (f(jx, jy, jz) > 0.)
+	  result(jx, jy, jz) = log(f(jx, jy, jz));
+	else
+	  result = 0.;
+	
+      }
+
+  result.setLocation( f.getLocation() );  
+
+  msg_stack.pop();
+  return result;
+}
+
 const Field3D sin(const Field3D &f) {
   msg_stack.push("sin(Field3D)");
   ASSERT1(f.isAllocated());
@@ -2836,7 +2860,7 @@ BoutReal Field3D::patchmax(bool allpe) const{
   if(allpe) {
     // MPI reduce
     BoutReal localresult = result;
-    MPI_Allreduce(&localresult, &result, 1, MPI_DOUBLE, MPI_MAX, BoutComm::get());
+    MPI_Allreduce(&localresult, &result, 1, MPI_DOUBLE, MPI_SUM, BoutComm::get());
   }
   
 #ifdef CHECK

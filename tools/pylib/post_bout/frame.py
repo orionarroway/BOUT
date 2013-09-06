@@ -40,12 +40,17 @@ class Frame(np.ndarray):
         
         defaults = {'dx':1,'x0':0,'dy':1,'y0':0,'stationary':False,
                     'yscale':'linear','title':'','xlabel':'','ylabel':'',
-                    'style':'','fontsz':10,'ticksize':6}   
+                    'style':'','fontsz':6,'ticksize':6,'contour_only':False,
+                    'alpha':1,'cmap':'Blues','colors':'k','markersize':30}   
 
         for key,val in defaults.items():
             if not hasattr(obj,key):
-                print 'setting: ',key,val
+                #print 'setting: ',key,val
                 setattr(obj, key, val)
+
+        #its more economical to set some defaults rather than have to re-enter for each array type
+        
+
    
         if not obj.stationary:   
             if obj.ndim == 3:   
@@ -71,15 +76,16 @@ class Frame(np.ndarray):
                 obj.Lx = obj.x.max()
                 
             elif obj.ndim == 1:
-                obj.nt = obj.shape[0]        
+                obj.nt = obj.shape[0]
+                obj.x = obj.x0+obj.dx*np.arange(obj.nt)
         else:
             if obj.ndim == 3:   
                 obj.nx,obj.ny, obj.nz = obj.shape
                 obj.amp = abs(obj).max()
             elif obj.ndim == 2:
                 obj.nx, obj.ny = obj.shape
-                obj.x = obj.dx*np.arange(obj.nx)
-                obj.y = obj.dy*np.arange(obj.ny)
+                obj.x = obj.x0+obj.dx*np.arange(obj.nx)
+                obj.y = obj.y0+obj.dy*np.arange(obj.ny)
             elif obj.ndim == 1:
                 obj.nx = obj.shape[0] 
                 obj.x = obj.x0+obj.dx*np.arange(obj.nx)
@@ -116,19 +122,31 @@ class Frame(np.ndarray):
         #params for 2d (imshow)
         obj.interpolation='bicubic'
         obj.aspect = 'auto'
-        obj.cmap= plt.get_cmap('jet',2000) 
+        obj.cmap= plt.get_cmap(obj.cmap,2000) 
         obj.t = 0
         
+
+        #we can't expect pointer to work if we reissun
         
+        #create a dummy figure,scence variable
+        fig = plt.figure()
+
         obj.img = None
         obj.ax = None
-        obj.img_sig =None
+        obj.img_sig = None
         
         # imgrid.append(ax.imshow(data_n[0,:,:],aspect='auto',cmap=jet,
         #                         interpolation='bicubic'))
         # Finally, we must return the newly created object:
         return obj
-    def render(self,fig,rect):
+
+    def reset(self):
+        self.ax = None
+        self.img = None
+        self.img_sig = None
+        self.t = 0
+
+    def render(self,fig,rect,rasterized=False):
         
         # def setup_axes(fig, rect):
         #     ax = axisartist.Subplot(fig, rect)
@@ -136,9 +154,17 @@ class Frame(np.ndarray):
          
         # ax = setup_axes(fig,221)  
        
+        #once rendered self.ax is always a regural maptplot axis object
+
         if self.ax == None:
-            self.ax = fig.add_subplot(rect)
+            self.ax = fig.add_subplot(rect,rasterized=rasterized)
+
+        #print self.ax,self.ndim  
         
+        # if type(self.ax) is list:  
+        #     self.ax = self.ax[0]
+            
+        print self.ax
             
         t = self.t
 
@@ -155,13 +181,15 @@ class Frame(np.ndarray):
                 
             else:  
                 print np.min(self.x)
-                self.img = self.ax.imshow(
-                    ((self[t,:,:].real)/self.amp[t]).transpose(),
-                    aspect= self.aspect,cmap = self.cmap,
-                    interpolation=self.interpolation,
-                    extent=[self.x.min(),self.x.max(),
-                            self.y.min(),self.y.max()],
-                    origin='lower')
+                
+                if self.contour_only is False:
+                    self.img = self.ax.imshow(
+                        ((self[t,:,:].real)/self.amp[t]).transpose(),
+                        aspect= self.aspect,cmap = self.cmap,
+                        interpolation=self.interpolation,
+                        extent=[self.x.min(),self.x.max(),
+                                self.y.min(),self.y.max()],
+                        origin='lower')
                 # self.img = self.ax.imshow((self[t,:,:].real)/self.amp[t],
                 #                           aspect= self.aspect,cmap = self.cmap,
                 #                           interpolation=self.interpolation,
@@ -191,12 +219,17 @@ class Frame(np.ndarray):
             self.nlevels = nlevels
             # if len(self.shape)==2:
             #     wire = obj
-            # else:
+            # else: 
             print self.shape
             
             #if hasattr(self,'data_c'):
-            wire = self.data_c[self.t,:,:]
-        
+            
+            print 'data_c: ',self.data_c.shape
+            if self.data_c.ndim == 3: 
+                wire = self.data_c[self.t,:,:]
+            else:
+                wire = self.data_c
+
             self.cset_levels = np.linspace(np.min(wire), 
                                            np.max(wire),nlevels)
             levels = self.cset_levels
@@ -204,23 +237,62 @@ class Frame(np.ndarray):
             if removeZero:   
                 levels = levels[np.where(np.min(np.abs(levels)) < np.abs(levels))]
             
-            self.cset = self.ax.contour(self.x,self.y,wire,self.cset_levels,colors='k',alpha=.7,linewidth=.1)
+            self.cset = self.ax.contour(self.x,self.y,wire,self.cset_levels,colors='k',alpha=1,linewidth=1)
             
+            if hasattr(self,'overplot'):
+                if type(self.overplot) is list:
+                     for subelem in self.overplot:
+                         self.ax.plot(self.x,subelem,alpha = self.alpha)
+                else:
+                    self.ax.plot(self.x,self.overplot,alpha = self.alpha)
+            
+            #self.ax.set_ylim(self.y.min(),self.y.max())
+
         elif self.ndim == 1:
             #print 'ampdot: ', self.shape,self[self.t]
             if self.stationary:
-                self.img, = self.ax.plot(self.x,self.real)
+                self.img, = self.ax.plot(self.x,self.real,self.style,
+                                         markersize=self.markersize,
+                                         alpha=self.alpha)
+                if hasattr(self,'sigma'):
+                    self.img_sig = [self.ax.fill_between(
+                        self.x,self+self.sigma,self-self.sigma, 
+                        facecolor='yellow', alpha=0.5)]
+                    
             else:
-                self.ax.plot(self.real,self.style)
-                self.img, = self.ax.plot(self.t,self[self.t].real,color='red',marker='o', markeredgecolor='r',alpha=0)
+                self.ax.plot(self.x,self.real,self.style)
+                self.img, = self.ax.plot(self.x[self.t],self[self.t].real,color='red',marker='o', markeredgecolor='r',alpha=0)
+                
 
             if hasattr(self,'overplot'):
-                self.ax.plot(self.x,self.overplot)
+                if type(self.overplot) is list:
+                     for subelem in self.overplot:
+                         self.ax.plot(self.x,subelem,alpha = self.alpha)
+                else:
+                    self.ax.plot(self.x,self.overplot,alpha = self.alpha)
+
+            
+        
 
         elif self.ndim == 2:
             if self.stationary:
-                self.img = self.ax.imshow(self,aspect= self.aspect,cmap = self.cmap,
-                                           interpolation=self.interpolation,origin='lower')
+            
+               
+
+                if self.contour_only:
+                    self.cset = self.ax.contour(self.x,self.y,self.transpose(),alpha = self.alpha,
+                                                colors=self.colors)
+                    
+                else:
+                    self.img = self.ax.imshow(self.transpose(),aspect= self.aspect,cmap = self.cmap,
+                                              interpolation=self.interpolation,
+                                              extent=[self.x.min(),self.x.max(),
+                                                      self.y.min(),self.y.max()],
+                                              origin='lower',alpha = self.alpha)
+                    self.cset = self.ax.contour(self.x,self.y,self.transpose(),
+                                                alpha=self.alpha,colors = self.colors)
+                    print 'rendering . . ',self.x.min()
+                    
             else:
            
                 self.img, = self.ax.plot(self.x,self[t,:].real,self.style)
@@ -235,7 +307,7 @@ class Frame(np.ndarray):
                 if hasattr(self,'overplot'):
                     self.ax.plot(self.x,self.overplot)
 
-        
+    
         if hasattr(self,'t_array'):
             try:
                 #print t
@@ -244,8 +316,7 @@ class Frame(np.ndarray):
             except:
                 self.tcount = self.ax.annotate(str('%03f' % t),(.1,.1),
                                                xycoords='figure fraction',fontsize = 15)
-            
-            
+          
         self.ax.set_ylabel(self.ylabel,fontsize = self.fontsz,
                            rotation='horizontal')
         #self.ax.yaxis.set_label_coords(-0.050,.95)
@@ -256,14 +327,18 @@ class Frame(np.ndarray):
         self.ax.set_yscale(self.yscale,linthreshy=1e-4)
         self.ax.grid(True,linestyle='-',color='.75',alpha='.5')
 
+    
+
     def update(self):
+       
         if self.t < self.nt:
             self.t +=1
             t = self.t
 
             #3D 
             if self.ndim ==3:
-                (self.img).set_data(((self[self.t,:,:].real)/self.amp[t]).transpose())
+                if self.contour_only is False:
+                    (self.img).set_data(((self[self.t,:,:].real)/self.amp[t]).transpose())
                 # if hasattr(self,'mask'):
                 #     thres = 1.1*np.min(self[self.t,:,:])
                 #     masked_array=np.ma.masked_where(self[self.t,:,:] < thres,self[self.t,:,:])
@@ -274,32 +349,39 @@ class Frame(np.ndarray):
                     for coll in self.cset.collections:
                         self.ax.collections.remove(coll)
                 except:
-                    'fail at removing cset'
-             
-                #print 'shape: ', self.ndim   
-               # if hasattr(self,'data_c'):
-                wire = self.data_c[self.t,:,:]
+                        'fail at removing cset'
+                        
+                        #print 'shape: ', self.ndim   
+                        # if hasattr(self,'data_c'):
+                if self.data_c.ndim ==3:
+                    wire = self.data_c[self.t,:,:]
+                else:
+                    wire =  self.data_c
+                   
                 nlevels = self.nlevels
                 self.cset_levels = np.linspace(np.min(wire.real), 
                                                np.max(wire.real),nlevels)
                 self.cset = self.ax.contour(self.x,self.y,wire.real,self.cset_levels,colors='k',alpha=.7,linewidths=.5)
             #2D
             elif self.ndim ==2:
-                print self.shape,self.t
-                t = self.t
-                self.img.set_data(self.x,self[t,:])
-                #self.ax.axis('tight')
-                #self.ax.set_ylim([np.min(self[t,:]),np.max(self[t,:])])
-
-                #print dir(self.img_sig)
-                #print 'collections', self.ax.collections #self.ax.collections.count()
-                if hasattr(self,'sigma'):
-                    for coll in (self.ax.collections):
-                        self.ax.collections.remove(coll)
-                    self.ax.fill_between(
-                        self.x,self[t,:]+self.sigma[t,:], 
-                        self[t,:]-self.sigma[t,:], 
-                        facecolor='yellow', alpha=0.5)
+                if self.stationary:
+                    pass
+                else:
+                    print self.shape,self.t
+                    t = self.t
+                    self.img.set_data(self.x,self[t,:])
+                    #self.ax.axis('tight')
+                    #self.ax.set_ylim[np.min(self[t,:]),np.max(self[t,:])])
+                    
+                    #print dir(self.img_sig)
+                    #print 'collections', self.ax.collections #self.ax.collections.count()
+                    if hasattr(self,'sigma'):
+                        for coll in (self.ax.collections):
+                            self.ax.collections.remove(coll)
+                        self.ax.fill_between(
+                            self.x,self[t,:]+self.sigma[t,:], 
+                            self[t,:]-self.sigma[t,:], 
+                            facecolor='yellow', alpha=0.5)
 
                 # if hasattr(self,'sigma'):
                 #     self.ax.fill_between(
@@ -312,7 +394,7 @@ class Frame(np.ndarray):
                 if self.stationary:
                     #self.ax.plot(self.x,self.real)
                     #self.ax.set_ylim([np.min(self),np.max(self)])
-                    print ''
+                    pass
                 else:
                     self.img.set_data(self.t,self[self.t])
 
@@ -335,9 +417,9 @@ class Frame(np.ndarray):
         self.info = getattr(obj, 'info', None)
 
 
-#class FrameArray(Frame):
+#class FrameAasray(Frame):
 def FrameMovie(frames,moviename='output',fast=True,bk=None,outline=True,
-               t_array=None,encoder='mencoder',fps=5.0,fig=None):
+               t_arraSy=None,encoder='ffmpeg',fps=5.0,fig=None):
     
     if fast:
         dpi = 100
@@ -351,7 +433,6 @@ def FrameMovie(frames,moviename='output',fast=True,bk=None,outline=True,
     import mpl_toolkits.axisartist as axisartist
     import pylab
     from matplotlib import rc
-    from matplotlib import rc    
 
         
     lin_formatter = ticker.ScalarFormatter()
@@ -359,9 +440,12 @@ def FrameMovie(frames,moviename='output',fast=True,bk=None,outline=True,
     
 
     
+    # font = {'family' : 'normal',
+    #         'weight' : 'normal',
+    #         'size'   : frames[0].ticksize}
     font = {'family' : 'normal',
-            'weight' : 'normal',
-            'size'   : frames[0].ticksize}
+            'weight' : 'normal'}
+    
     
     axes = {'linewidth': .5}
     tickset ={'markeredgewidth': .25}
@@ -371,14 +455,19 @@ def FrameMovie(frames,moviename='output',fast=True,bk=None,outline=True,
     rc('axes',**axes)
     rc('lines',**tickset)
     
+    
     plt.tick_params(axis='both',direction='in',which='both')
     
-    jet = plt.get_cmap('jet',2000) 
+    jet = plt.get_cmap('bone',2000) 
     
     if fig == None:
         fig = plt.figure()
         
     
+    fig_ref =plt.figure()
+    temp = fig_ref.add_subplot(111)
+    axis_subplot = type(temp)
+
     nframes = len(frames) 
 
     shared = 0
@@ -400,29 +489,63 @@ def FrameMovie(frames,moviename='output',fast=True,bk=None,outline=True,
         return int(s)
 
     offset = 0
+  
     for i,elem in enumerate(frames):
-    #for i in nframes:
-        print 'i: ',i,elem.ax,nrow,ncol,i
-        elem.render(fig,magic([nrow,ncol,i+1-offset]))
-        elem.ax.yaxis.set_major_formatter(lin_formatter)   
-        #elem.ax.yaxis.set_major_formatter(FormatStrFormatter('%1f'))
-        if hasattr(elem,'shareax'):
-            if elem.shareax ==True:
-                offset = offset +1
 
+        print 'i: ',i,nrow,ncol,type(elem),nframes,nrow,ncol
+        if type(elem) is list:
+            for subelem in elem:
+               subelem.render(fig,magic([nrow,ncol,i+1-offset]))
+               nt = subelem.nt
+               
+        else:
+            elem.render(fig,magic([nrow,ncol,i+1-offset]))
+            #elem.render(fig2,magic([nrow,ncol,i+1-offset]))
+            elem.ax.yaxis.set_major_formatter(lin_formatter)
+            nt = elem.nt
+            #elem.ax.yaxis.set_major_formatter(FormatStrFormatter('%1f'))
+                #if hasattr(elem,'shareax'):
+                #    if elem.shareax ==True:
+                 #       offset = offset +1
+ 
+
+    def flatten(l,flat_l):
+        for el in l:
+            if type(el) is list:
+                flatten(el,flat_l)
+            else:
+                flat_l.append(el)
+        
+    flat_frames = []
+    flatten(frames,flat_frames)
+
+
+
+    print len(flat_frames), flat_frames[0].__class__
+
+
+    
     def update_img(t):
         print 't: ' ,t
-        for elem in frames:
+        for elem in flat_frames:
+            print elem.shape,elem.stationary
             elem.update()
 
-    nt = frames[0].nt 
+            #update_img(2)
 
-    ani = animation.FuncAnimation(fig,update_img,nt-2)    
+    #let's draw a simple pdf
+
+#    update_img(0)
+
+    ani = animation.FuncAnimation(fig,update_img,nt-2) 
+    #ani = animation.FuncAnimation(fig,frames[0].update,nt-5) 
     ani.save(moviename+'.mp4',writer=encoder,dpi=dpi,bitrate=20000,fps=5)
     
     plt.close(fig)
-    
-    for i,elem in enumerate(frames):
-        elem.t = 0
+    plt.close(fig_ref)
+
+    for i,elem in enumerate(flat_frames):
+        if hasattr(elem,'t'):
+            elem.t = 0
     
     return 0        

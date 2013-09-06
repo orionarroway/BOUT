@@ -298,6 +298,7 @@ BoutReal max(const Field3D &f, bool allpe=false);
 
 const Field3D exp(const Field3D &f);
 const Field3D log(const Field3D &f);
+const Field3D lazy_log(const Field3D &f);
 
 const Field3D sin(const Field3D &f);
 const Field3D cos(const Field3D &f);
