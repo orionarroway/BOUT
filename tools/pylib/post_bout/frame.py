@@ -134,6 +134,7 @@ class Frame(np.ndarray):
         obj.img = None
         obj.ax = None
         obj.img_sig = None
+        obj.cset = None
         
         # imgrid.append(ax.imshow(data_n[0,:,:],aspect='auto',cmap=jet,
         #                         interpolation='bicubic'))
@@ -164,7 +165,7 @@ class Frame(np.ndarray):
         # if type(self.ax) is list:  
         #     self.ax = self.ax[0]
             
-        print self.ax
+        print 'in render', self.ax, self.ndim
             
         t = self.t
 
@@ -249,7 +250,9 @@ class Frame(np.ndarray):
         elif self.ndim == 1:
             #print 'ampdot: ', self.shape,self[self.t]
             if self.stationary:
+               
                 self.img, = self.ax.plot(self.x,self.real)
+                
                 if hasattr(self,'sigma'):
                     self.img_sig = [self.ax.fill_between(
                         self.x,self+self.sigma,self-self.sigma, 
@@ -280,7 +283,8 @@ class Frame(np.ndarray):
                                                 colors=self.colors)
                     
                 else:
-                    self.img = self.ax.imshow(self.transpose(),aspect= self.aspect,cmap = self.cmap,
+                    self.img = self.ax.imshow(self.transpose(),aspect= self.aspect,
+                                              cmap = self.cmap,
                                               interpolation=self.interpolation,
                                               extent=[self.x.min(),self.x.max(),
                                                       self.y.min(),self.y.max()],
@@ -322,10 +326,10 @@ class Frame(np.ndarray):
         self.ax.set_yscale(self.yscale,linthreshy=1e-4)
         self.ax.grid(True,linestyle='-',color='.75',alpha='.5')
 
-    
+        
 
     def update(self):
-       
+        print 'updating',self.ndim,self.stationary
         if self.t < self.nt:
             self.t +=1
             t = self.t
@@ -493,6 +497,7 @@ def FrameMovie(frames,moviename='output',fast=True,bk=None,outline=True,
                nt = subelem.nt
                
         else:
+            #print 'go to render'
             elem.render(fig,magic([nrow,ncol,i+1-offset]))
             #elem.render(fig2,magic([nrow,ncol,i+1-offset]))
             elem.ax.yaxis.set_major_formatter(lin_formatter)
@@ -517,7 +522,7 @@ def FrameMovie(frames,moviename='output',fast=True,bk=None,outline=True,
 
     print len(flat_frames), flat_frames[0].__class__
 
-
+    
     
     def update_img(t):
         print 't: ' ,t
