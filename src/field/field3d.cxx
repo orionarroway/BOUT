@@ -2413,7 +2413,7 @@ const Field3D lazy_log(const Field3D &f) {
 	if (f(jx, jy, jz) > 0.)
 	  result(jx, jy, jz) = log(f(jx, jy, jz));
 	else
-	  result = 0.;
+	  result(jx,jy,jz) = log(abs(f(jx, jy, jz)));
 	
       }
 

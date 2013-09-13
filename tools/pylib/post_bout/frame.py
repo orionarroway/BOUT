@@ -535,9 +535,12 @@ def FrameMovie(frames,moviename='output',fast=True,bk=None,outline=True,
 
     #let's draw a simple pdf
 
-#    update_img(0)
-
-    ani = animation.FuncAnimation(fig,update_img,nt-2) 
+    #    update_img(0)
+    
+    try:
+        ani = animation.FuncAnimation(fig,update_img,nt-2) 
+    except:
+        pass
     #ani = animation.FuncAnimation(fig,frames[0].update,nt-5) 
     ani.save(moviename+'.mp4',writer=encoder,dpi=dpi,bitrate=20000,fps=5)
     
