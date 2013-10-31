@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+from matplotlib import cm
+#from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
@@ -41,7 +42,8 @@ class Frame(np.ndarray):
         defaults = {'dx':1,'x0':0,'dy':1,'y0':0,'stationary':False,
                     'yscale':'linear','title':'','xlabel':'','ylabel':'',
                     'style':'','fontsz':6,'ticksize':6,'contour_only':False,
-                    'alpha':1,'cmap':'Blues','colors':'k','markersize':30}   
+                    'alpha':1,'cmap':'Blues','colors':'k','markersize':30,'raster':True}   
+        
 
         for key,val in defaults.items():
             if not hasattr(obj,key):
@@ -120,30 +122,33 @@ class Frame(np.ndarray):
         
 
         #params for 2d (imshow)
-        obj.interpolation='bicubic'
+        obj.interpolation='bilinear'
         obj.aspect = 'auto'
         obj.cmap= plt.get_cmap(obj.cmap,2000) 
         obj.t = 0
         
-
+        
         #we can't expect pointer to work if we reissun
         
         #create a dummy figure,scence variable
-        fig = plt.figure()
+        #fig = plt.figure()
 
         obj.img = None
         obj.ax = None
         obj.img_sig = None
+        obj.mesh = None
+        obj.ax_3d = None
         
         # imgrid.append(ax.imshow(data_n[0,:,:],aspect='auto',cmap=jet,
         #                         interpolation='bicubic'))
         # Finally, we must return the newly created object:
         return obj
-
+        
     def reset(self):
         self.ax = None
         self.img = None
         self.img_sig = None
+        self.ax_3d = None
         self.t = 0
 
     def render(self,fig,rect,rasterized=False):
@@ -158,7 +163,8 @@ class Frame(np.ndarray):
 
         if self.ax == None:
             self.ax = fig.add_subplot(rect,rasterized=rasterized)
-
+        
+        
         #print self.ax,self.ndim  
         
         # if type(self.ax) is list:  
@@ -189,32 +195,15 @@ class Frame(np.ndarray):
                         interpolation=self.interpolation,
                         extent=[self.x.min(),self.x.max(),
                                 self.y.min(),self.y.max()],
-                        origin='lower')
-                # self.img = self.ax.imshow((self[t,:,:].real)/self.amp[t],
-                #                           aspect= self.aspect,cmap = self.cmap,
-                #                           interpolation=self.interpolation,
-                #                           extent=[0,1,0,1],
-                #                           origin='lower')
+                        origin='lower',rasterized = self.raster)
+                    #self.ax_3d = fig.gca(projection='3d')
+                    # X, Y = np.meshgrid(self.x, self.y)
+                    # self.mesh = self.ax_3d.plot_surface(X,Y,((self[t,:,:].real)/self.amp[t]).transpose())
+
+
                 
                 print self.x.shape, self.y.shape
-                # self.img = self.ax.contour(self.x,self.y,
-                #                            (self[t,:,:].real)/self.amp[t],
-                #                            aspect= self.aspect,cmap = self.cmap,
-                #                            interpolation=self.interpolation,
-                #                            origin='lower')
-            # if hasattr(self,'mask'):
-            #      thres = 1.05*np.min(self[self.t,:,:])
-            #      masked_array=np.ma.masked_where(self[self.t,:,:]<thres,self[self.t,:,:])
-            #      self.cmap = plt.get_cmap('jet',2000) 
-            #      self.cmap.set_bad('w',1.)
-            # else:
-            #     masked_array = self[self.t,:,:]
-            #     thres = None
-            # print masked_array.shape
-            # self.img = self.ax.imshow(masked_array.real,aspect=self.aspect,origin='lower',
-            #                           cmap=self.cmap,
-            #                           norm = colors.Normalize(vmin = thres, clip = False))
-                
+           
             nlevels = 7
             self.nlevels = nlevels
             # if len(self.shape)==2:
@@ -247,8 +236,9 @@ class Frame(np.ndarray):
                     self.ax.plot(self.x,self.overplot,alpha = self.alpha)
             
             #self.ax.set_ylim(self.y.min(),self.y.max())
-
+      
         elif self.ndim == 1:
+            
             #print 'ampdot: ', self.shape,self[self.t]
             if self.stationary:
                 self.img, = self.ax.plot(self.x,self.real,self.style,
@@ -258,7 +248,7 @@ class Frame(np.ndarray):
                     self.img_sig = [self.ax.fill_between(
                         self.x,self+self.sigma,self-self.sigma, 
                         facecolor='yellow', alpha=0.5)]
-                    
+                  
             else:
                 self.ax.plot(self.x,self.real,self.style)
                 self.img, = self.ax.plot(self.x[self.t],self[self.t].real,color='red',marker='o', markeredgecolor='r',alpha=0)
@@ -284,28 +274,31 @@ class Frame(np.ndarray):
                                                 colors=self.colors)
                     
                 else:
+
+                    #print yy.max()
                     self.img = self.ax.imshow(self.transpose(),aspect= self.aspect,cmap = self.cmap,
                                               interpolation=self.interpolation,
                                               extent=[self.x.min(),self.x.max(),
                                                       self.y.min(),self.y.max()],
-                                              origin='lower',alpha = self.alpha)
-                    self.cset = self.ax.contour(self.x,self.y,self.transpose(),
-                                                alpha=self.alpha,colors = self.colors)
+                                              origin='lower',alpha = self.alpha, 
+                                              rasterized=self.raster)
+                    # self.cset = self.ax.contour(self.x,self.y,self.transpose(),
+                    #                             alpha=self.alpha,colors = self.colors)
                     print 'rendering . . ',self.x.min()
                     
             else:
            
-                self.img, = self.ax.plot(self.x,self[t,:].real,self.style)
+                self.img, = self.ax.plot(self.x,self[t,:].real,self.style,rasterized=self.raster)
                 
                 if hasattr(self,'sigma'):
                     print self.sigma.shape
                     self.img_sig = [self.ax.fill_between(
                             self.x,self[t,:]+self.sigma[t,:], 
                             self[t,:]-self.sigma[t,:], 
-                            facecolor='yellow', alpha=0.5)]
+                            facecolor='yellow', alpha=0.5,rasterized=self.raster)]
 
                 if hasattr(self,'overplot'):
-                    self.ax.plot(self.x,self.overplot)
+                    self.ax.plot(self.x,self.overplot,rasterized=self.raster)
 
     
         if hasattr(self,'t_array'):
@@ -321,12 +314,20 @@ class Frame(np.ndarray):
                            rotation='horizontal')
         #self.ax.yaxis.set_label_coords(-0.050,.95)
         self.ax.set_xlabel(self.xlabel,fontsize =self.fontsz)
-        self.ax.xaxis.set_label_coords(1.05, -0.0250)
+        
+        #self.ax.xaxis.set_label_coords(1.05, -0.0250)
         self.ax.set_title(self.title,fontsize = self.fontsz)
+        #self.ax.xaxis.set_label_coords(.7, -0.2)
         #self.ax.xaxis('tight')
+        
         self.ax.set_yscale(self.yscale,linthreshy=1e-4)
-        self.ax.grid(True,linestyle='-',color='.75',alpha='.5')
 
+        try:
+            self.ax.grid(True,linestyle='-',color='.75',alpha=.5)
+        except:
+            self.ax.grid(True,linestyle='-',color='.75')
+        self.ax.xaxis.set_label_coords(.7, -0.1)
+        #self.ax.yaxis.set_label_coords(-.1, 0.50)
     
 
     def update(self):
