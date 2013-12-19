@@ -138,6 +138,8 @@ class Field2D : public Field, public FieldData {
   const Field2D abs() const;
   BoutReal min(bool allpe=false) const;
   BoutReal max(bool allpe=false) const;
+  BoutReal mean(bool allpe=true) const;
+
   bool finite() const;
   
   friend const Field2D exp(const Field2D &f);
@@ -214,6 +216,7 @@ const Field2D sqrt(const Field2D &f);
 const Field2D abs(const Field2D &f);
 BoutReal min(const Field2D &f, bool allpe=false);
 BoutReal max(const Field2D &f, bool allpe=false);
+
 bool finite(const Field2D &f);
 
 const Field2D copy(const Field2D &f);

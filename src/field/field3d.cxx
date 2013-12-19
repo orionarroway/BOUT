@@ -354,10 +354,13 @@ Field3D & Field3D::operator=(const FieldPerp &rhs) {
   ASSERT1(d != (BoutReal**) NULL);
 #if CHECK > 1
   /// Test rhs values
+
+  //output << "data " << d[1x][0] << endl;
   for(int jx=mesh->xstart;jx<=mesh->xend;jx++)
     for(int jz=0;jz<mesh->ngz-1;jz++)
       if(!finite(d[jx][jz]) and (d[jx][jz] != 0)) {
-	output << "data " << block->data[jx][jy][jz] << endl;
+	//output << "data " << block->data[jx][jy][jz] << endl;
+	output << "data " << d[jx][jz] << endl;
 	throw BoutException("Field3D: Assignment from non-finite FieldPerp data at (%d,%d,%d)\n", jx,jy,jz);
       }
 #endif

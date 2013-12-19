@@ -80,7 +80,8 @@ FUNCTION file_write, handle, varname, data
 
   IF vid EQ -1 THEN BEGIN
     ; Need to define the variable
-    
+    print, handle.id,varname
+
     CALL_PROCEDURE, 'NCDF_CONTROL', handle.id, /REDEF
 
     nd = SIZE(data, /N_DIM)
@@ -168,6 +169,7 @@ FUNCTION file_write, handle, varname, data
     
   ENDIF
   
+  print, handle.id
   CALL_PROCEDURE, 'NCDF_CONTROL', handle.id, /ENDEF
   
   ; Reverse indices of data and write to the file

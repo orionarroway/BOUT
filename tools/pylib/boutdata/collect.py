@@ -60,7 +60,10 @@ def collect(varname, xind=None, yind=None, zind=None, tind=None, path=".",yguard
     #print "Number of files: " + str(nfiles)
     
     # Read data from the first file
+    
+    #print file_list
     f = DataFile(file_list[0])
+    
     
     #print "File format    : " + f.file_format
     try:
@@ -86,7 +89,8 @@ def collect(varname, xind=None, yind=None, zind=None, tind=None, path=".",yguard
     myg   = f.read("MYG")
     t_array = f.read("t_array")
     nt = len(t_array)
-    
+    #print mxsub, mysub
+
     if info:
         print "mxsub = %d mysub = %d mz = %d\n" % (mxsub, mysub, mz)
 

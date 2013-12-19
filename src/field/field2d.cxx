@@ -869,6 +869,39 @@ bool Field2D::finite() const {
   return true;
 }
 
+
+BoutReal Field2D::mean(bool allpe) const {
+#ifdef CHECK
+  // Check data set
+  if(data == (BoutReal**) NULL)
+    throw BoutException("Field2D: Taking mean of empty data\n");
+  if(allpe) {
+    msg_stack.push("Field2D::Mean() over all PEs");
+  }else
+    msg_stack.push("Field2D::Mean()");
+#endif
+
+  BoutReal result = data[0][0]*0.0;
+  
+  //for(int jx=mesh->xstart;jx<mesh->xend+1;jx++)
+  // for(int jy=mesh->ystart;jy<mesh->yend+1;jy++)     
+  for(int jx=0;jx<mesh->ngx;jx++)
+    for(int jy=0;jy<mesh->ngy;jy++) 
+      result += data[jx][jy]/(mesh->ngx*mesh->NXPE*mesh->ngy);///(mesh->GlobalNx * mesh->GlobalNy);
+  //result += data[jx][jy]/(mesh->ngx * mesh->ngy* mesh->NXPE);
+      //result = data[jx][jy];
+  if(allpe) {
+    // MPI reduce
+    BoutReal localresult = result;
+    MPI_Allreduce(&localresult, &result, 1, MPI_DOUBLE, MPI_SUM, BoutComm::get());
+  }
+  
+#ifdef CHECK
+  msg_stack.pop();
+#endif
+  
+  return result;
+}
 ///////////////////// FieldData VIRTUAL FUNCTIONS //////////
 
 int Field2D::getData(int x, int y, int z, void *vptr) const {
