@@ -27,8 +27,12 @@ def read_inp(path='',boutinp='BOUT.inp'):
    boutlist = []
   
    for i,val in enumerate(boutinp):
+      
       if val[0] != '#' and val.isspace() == False:
+         print val
          boutlist.append(val.split("#")[0])
+         
+   #exit()
 
    return boutlist
 
@@ -58,13 +62,14 @@ def parse_inp(boutlist):
    boutdic['[main]'] = {}
    current='[main]'
 
+   
    for i,val in enumerate(boutlist):
-      #print i,val
+      print i,val
       result =pattern.match(val)
       #while the current value is not a new section name add everything to the current section
       
       if result is None:
-         #print val
+         print val
          key,value = val.split("=")
          value = value.replace('\"','')
          #print current, key,value

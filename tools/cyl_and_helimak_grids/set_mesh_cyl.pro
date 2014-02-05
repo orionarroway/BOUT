@@ -63,6 +63,7 @@ pro AhmetSOL,grid_size = N,filename = filename
 
   gridname = ["Ahmet_",string(2^N),"x",string(2^N),".nc"]
   
+end
 
 pro Helimak_grid,expr_prof = expr_prof,grid_size = N,filename = filename
 
@@ -88,6 +89,7 @@ pro Helimak_grid,expr_prof = expr_prof,grid_size = N,filename = filename
   spawn,"rm *.pdb"
 end
 
+
 pro simple_cyl,grid_size = N,filename = filename
   set_mesh_cyl,/export,Nr = 36, Nz = 32,rMin = 0.001, rMax = .03,ni0 = $
                3.0e15,te0=15.,Bz0 = .10,bphi0 = 0,Zmax=6.0,$
@@ -95,7 +97,7 @@ pro simple_cyl,grid_size = N,filename = filename
                phi0V =5./10000., phi_profile_type = 0
 
   if not keyword_set(filename) then filename = "CLM.nc"
-  read_uedata3, /s, d, /noref, /NOPLOTS,filename = filename
+  read_uedata3, /s, d, /noref, /NOPLOTS,filename = filename,/nopdb
   spawn,"rm *.pdb"
 end
 
@@ -634,6 +636,7 @@ b=sqrt(br^2+bz^2+bphi^2)
      print, file2  
      print, file3  
      
+
      status = file_export(file1, d1)
      status = file_export(file2, d2)
      status = file_export(file3, d3)

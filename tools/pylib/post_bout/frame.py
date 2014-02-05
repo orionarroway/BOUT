@@ -11,7 +11,7 @@ import matplotlib.colors as colors
 
 try:
     import matplotlib.artist as artist 
-    import matplotlib.ticker as ticker
+    import matplotlib.ticker as ticker   
     from matplotlib.ticker import FormatStrFormatter
     import matplotlib.animation as animation  
     from matplotlib.lines import Line2D
@@ -29,6 +29,7 @@ except:
 class Frame(np.ndarray):
 
     def __new__(cls, data,meta=None):
+        print 'new frame'
         # Input array is an already formed ndarray instance
         # We first cast to be our class type
         #obj = np.asarray(data).view(cls)  
@@ -42,7 +43,8 @@ class Frame(np.ndarray):
         defaults = {'dx':1,'x0':0,'dy':1,'y0':0,'stationary':False,
                     'yscale':'linear','title':'','xlabel':'','ylabel':'',
                     'style':'','fontsz':6,'ticksize':6,'contour_only':False,
-                    'alpha':1,'cmap':'Blues','colors':'k','markersize':30,'raster':True}   
+                    'alpha':1,'cmap':'Blues','colors':'k','markersize':30,'raster':True,
+                    'linewidth':1}   
         
 
         for key,val in defaults.items():
@@ -143,6 +145,26 @@ class Frame(np.ndarray):
         #                         interpolation='bicubic'))
         # Finally, we must return the newly created object:
         return obj
+    
+    def __array_finalize__(self, obj):
+        print 'In array_finalize:'
+        print '   self type is %s' % type(self)
+        print '   obj type is %s' % type(obj)
+        
+
+    #     defaults = {'dx':1,'x0':0,'dy':1,'y0':0,'stationary':False,
+    #                 'yscale':'linear','title':'','xlabel':'','ylabel':'',
+    #                 'style':'','fontsz':6,'ticksize':6,'contour_only':False,
+    #                 'alpha':1,'cmap':'Blues','colors':'k','markersize':30,'raster':True,
+    #                 'linewidth':1}   
+        
+
+    #     for key,val in defaults.items():
+    #         if not hasattr(self,key):
+    #             #print 'setting: ',key,val
+    #             setattr(self, key, val)
+
+    #     exit()
         
     def reset(self):
         self.ax = None
@@ -231,9 +253,9 @@ class Frame(np.ndarray):
             if hasattr(self,'overplot'):
                 if type(self.overplot) is list:
                      for subelem in self.overplot:
-                         self.ax.plot(self.x,subelem,alpha = self.alpha)
+                         self.ax.plot(self.x,subelem[0:len(self.x)],alpha = self.alpha)
                 else:
-                    self.ax.plot(self.x,self.overplot,alpha = self.alpha)
+                    self.ax.plot(self.x,self.overplot[0:len(self.x)],alpha = self.alpha)
             
             #self.ax.set_ylim(self.y.min(),self.y.max())
       
@@ -241,9 +263,10 @@ class Frame(np.ndarray):
             
             #print 'ampdot: ', self.shape,self[self.t]
             if self.stationary:
-                self.img, = self.ax.plot(self.x,self.real,self.style,
+                self.img, = self.ax.plot(self.x,self.real,self.style,linewidth=self.linewidth,
                                          markersize=self.markersize,
                                          alpha=self.alpha)
+                #self.img, = self.ax.plot(self.x,self.real,'-',linewidth=50)
                 if hasattr(self,'sigma'):
                     self.img_sig = [self.ax.fill_between(
                         self.x,self+self.sigma,self-self.sigma, 
@@ -257,18 +280,15 @@ class Frame(np.ndarray):
             if hasattr(self,'overplot'):
                 if type(self.overplot) is list:
                      for subelem in self.overplot:
-                         self.ax.plot(self.x,subelem,alpha = self.alpha)
+                         self.ax.plot(self.x,subelem[0:len(self.x)],alpha = self.alpha)
                 else:
-                    self.ax.plot(self.x,self.overplot,alpha = self.alpha)
+                    self.ax.plot(self.x,self.overplot[0:len(self.x)],alpha = self.alpha)
 
             
         
 
         elif self.ndim == 2:
             if self.stationary:
-            
-               
-
                 if self.contour_only:
                     self.cset = self.ax.contour(self.x,self.y,self.transpose(),alpha = self.alpha,
                                                 colors=self.colors)
@@ -412,10 +432,7 @@ class Frame(np.ndarray):
 #        if self.ndim ==1:
 
     
-    def __array_finalize__(self, obj):
-        # see InfoArray.__array_finalize__ for comments
-        if obj is None: return
-        self.info = getattr(obj, 'info', None)
+   
 
 
 #class FrameAasray(Frame):

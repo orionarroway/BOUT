@@ -119,16 +119,16 @@ pro Helimak_grid,expr_prof = expr_prof,grid_size = N,filename = filename
   spawn,"rm *.pdb"
 end
 
-pro simple_cyl,grid_size = N,filename = filename
-  set_mesh_cyl,/export,Nr = 36, Nz = 32,rMin = 0.001, rMax = .03,ni0 = $
-               3.0e15,te0=15.,Bz0 = .10,bphi0 = 0,Zmax=6.0,$
-               ni_profile_type = 0,ti0 =1.0, te_profile_type = 1,$
-               phi0V =5./10000., phi_profile_type = 0
+;; pro simple_cyl,grid_size = N,filename = filename
+;;   set_mesh_cyl,/export,Nr = 36, Nz = 32,rMin = 0.001, rMax = .03,ni0 = $
+;;                3.0e15,te0=15.,Bz0 = .10,bphi0 = 0,Zmax=6.0,$
+;;                ni_profile_type = 0,ti0 =1.0, te_profile_type = 1,$
+;;                phi0V =5./10000., phi_profile_type = 0
 
-  if not keyword_set(filename) then filename = "CLM.nc"
-  read_uedata3, /s, d, /noref, /NOPLOTS,filename = filename
-  spawn,"rm *.pdb"
-end
+;;   if not keyword_set(filename) then filename = "CLM.nc"
+;;   read_uedata3, /s, d, /noref, /NOPLOTS,filename = filename,/nopdb
+;;   spawn,"rm *.pdb"
+;; end
 
 
 
