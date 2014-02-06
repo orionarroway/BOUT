@@ -9,17 +9,17 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.colors as colors
 
 
-try:
-    import matplotlib.artist as artist 
-    import matplotlib.ticker as ticker   
-    from matplotlib.ticker import FormatStrFormatter
-    import matplotlib.animation as animation  
-    from matplotlib.lines import Line2D
-    import mpl_toolkits.axisartist as axisartist
-    import pylab
+# try:
+import matplotlib.artist as artist 
+import matplotlib.ticker as ticker   
+from matplotlib.ticker import FormatStrFormatter
+import matplotlib.animation as animation  
+from matplotlib.lines import Line2D
+import mpl_toolkits.axisartist as axisartist
+import pylab
 
-except:
-    print "Can't import what you need"
+# except:
+#     print "Can't import what you need"
 
 
 # generic frame object, derives from ndarray since at its core its basically
@@ -146,25 +146,34 @@ class Frame(np.ndarray):
         # Finally, we must return the newly created object:
         return obj
     
-    def __array_finalize__(self, obj):
-        print 'In array_finalize:'
-        print '   self type is %s' % type(self)
-        print '   obj type is %s' % type(obj)
+    def array_finalize(self, obj):
+        #print 'array_finalize'
+
+        #copy all frame like attributes - not nd.array-like ones
+
+        #see whats missing
+        copyme = set(dir(obj)).difference(set(dir(self)))
+        #print copyme
         
-
-    #     defaults = {'dx':1,'x0':0,'dy':1,'y0':0,'stationary':False,
-    #                 'yscale':'linear','title':'','xlabel':'','ylabel':'',
-    #                 'style':'','fontsz':6,'ticksize':6,'contour_only':False,
-    #                 'alpha':1,'cmap':'Blues','colors':'k','markersize':30,'raster':True,
-    #                 'linewidth':1}   
         
+        for key in copyme:
+            if not hasattr(self,key): #why 2x check?
+                setattr(self, key, getattr(obj,key))
 
-    #     for key,val in defaults.items():
-    #         if not hasattr(self,key):
-    #             #print 'setting: ',key,val
-    #             setattr(self, key, val)
+    # def __array_finalize__(self, obj):
+    #     #print 'array_finalize'
 
-    #     exit()
+    #     #copy all frame like attributes - not nd.array-like ones
+
+    #     #see whats missing
+    #     copyme = set(dir(obj)).difference(set(dir(self)))
+    #     #print copyme
+        
+        
+    #     for key in copyme:
+    #         if not hasattr(self,key): #why 2x check?
+    #             setattr(self, key, getattr(obj,key))
+   
         
     def reset(self):
         self.ax = None
@@ -175,6 +184,7 @@ class Frame(np.ndarray):
 
     def render(self,fig,rect,rasterized=False):
         
+        #print 'render !'
         # def setup_axes(fig, rect):
         #     ax = axisartist.Subplot(fig, rect)
         #     fig.add_subplot(ax)
@@ -222,10 +232,10 @@ class Frame(np.ndarray):
                     # X, Y = np.meshgrid(self.x, self.y)
                     # self.mesh = self.ax_3d.plot_surface(X,Y,((self[t,:,:].real)/self.amp[t]).transpose())
 
-
+                    
                 
                 print self.x.shape, self.y.shape
-           
+            
             nlevels = 7
             self.nlevels = nlevels
             # if len(self.shape)==2:
@@ -288,6 +298,7 @@ class Frame(np.ndarray):
         
 
         elif self.ndim == 2:
+            #print 'render 2'
             if self.stationary:
                 if self.contour_only:
                     self.cset = self.ax.contour(self.x,self.y,self.transpose(),alpha = self.alpha,
@@ -302,14 +313,16 @@ class Frame(np.ndarray):
                                                       self.y.min(),self.y.max()],
                                               origin='lower',alpha = self.alpha, 
                                               rasterized=self.raster)
+                    
                     # self.cset = self.ax.contour(self.x,self.y,self.transpose(),
                     #                             alpha=self.alpha,colors = self.colors)
                     print 'rendering . . ',self.x.min()
                     
             else:
-           
+                #print 'render 2img'
                 self.img, = self.ax.plot(self.x,self[t,:].real,self.style,rasterized=self.raster)
-                
+                #print 'render 2img'
+                #exit()
                 if hasattr(self,'sigma'):
                     print self.sigma.shape
                     self.img_sig = [self.ax.fill_between(
@@ -319,7 +332,8 @@ class Frame(np.ndarray):
 
                 if hasattr(self,'overplot'):
                     self.ax.plot(self.x,self.overplot,rasterized=self.raster)
-
+                #print 'render 2sigs'
+                #exit()
     
         if hasattr(self,'t_array'):
             try:
@@ -509,18 +523,23 @@ def FrameMovie(frames,moviename='output',fast=True,bk=None,outline=True,
     offset = 0
   
     for i,elem in enumerate(frames):
-
+        #print 'elem',elem.title,elem.__class__,type(elem)
+        
         print 'i: ',i,nrow,ncol,type(elem),nframes,nrow,ncol
         if type(elem) is list:
+            print 'its a list'
             for subelem in elem:
                subelem.render(fig,magic([nrow,ncol,i+1-offset]))
                nt = subelem.nt
+            #exit()
                
         else:
+            print 'ndim: ',elem.ndim
             elem.render(fig,magic([nrow,ncol,i+1-offset]))
             #elem.render(fig2,magic([nrow,ncol,i+1-offset]))
             elem.ax.yaxis.set_major_formatter(lin_formatter)
             nt = elem.nt
+            #exit()
             #elem.ax.yaxis.set_major_formatter(FormatStrFormatter('%1f'))
                 #if hasattr(elem,'shareax'):
                 #    if elem.shareax ==True:
