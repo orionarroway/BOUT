@@ -1,7 +1,7 @@
 try:
-      #from netCDF4 import Dataset
+      from netCDF4 import Dataset
       #from Scientific.IO.NetCDF import NetCDFFile
-      from scipy.io import netcdf
+      #from scipy.io import netcdf
       import subprocess
 except:
       exit()
@@ -39,8 +39,8 @@ def hlmk_grid(refresh=False):
       data = s['data'] #now we'll dump this to a netcdf
       # print(type(data))
       # os._exit(0)
-      #f = Dataset('hlmk.nc', "w",format='NETCDF3_CLASSIC')
-      f = netcdf.netcdf_file('hlmk.nc', 'w')
+      f = Dataset('hlmk.nc', "w",format='NETCDF3_CLASSIC')
+      #f = netcdf.netcdf_file('hlmk.nc', 'w')
 
       x = f.createDimension('x',data['nx'])
       y = f.createDimension('y',data['ny'])
@@ -49,59 +49,32 @@ def hlmk_grid(refresh=False):
 
       for i,name in enumerate(data.dtype.names):
       
-            if not((name.lower() ==  'nx') or (name.lower() == 'ny')):
-                  print(name.lower())
-                  print(data[name].__class__)
-                  print(data[name][0].__class__)
+            # if not((name.lower() ==  'nx') or (name.lower() == 'ny') or (name.lower() == 'areadme')):
+            if not((name.lower() == 'areadme')):
                   
                   if isinstance(data[name][0],(type(np.array([0])))):
                         if (data[name][0].ndim) == 2:#.shape,data[name][0].shape)
-                              print(data.dtype[i])
-                              var = f.createVariable(name,'f',('x','y'))
-                              var[:] = np.transpose((data[name])[0])
-                              print('writing this')
-                              print(var[15,:])
-                              f.sync()
+                              var = f.createVariable(name,(data[name][0]).dtype,('x','y'))
+                              var[:] = np.transpose((data[name])[0]) 
+                        if (data[name][0].ndim) == 1:
+                              var = f.createVariable(name,(data[name][0]).dtype,('x'))
+                              var[:] = ((data[name])[0]) 
+
+                           
                   else:
-                        print(data[name][0])
-                  
-                  # if ('RXY' in (f.variables.keys())):
-
-                  #       print(f.variables.keys())
-                  #       R = f.variables['RXY']
-                  #       print(R.data[15,:])
-                  #       exit()
-
-                  #exit()
-
-                  # try:
-                  #       if 'Rxy' in f.variables
-                  #       R = f.variables['RXY']
-                  #       print(R.data[15,:])
-                  # except:
-                  #       exit()
-      #             try:
-      #                   status = f.createVariable(name,data.dtype[i],('x','y'))
-      #                   #print((data[name][0]).shape)
-      #                   # print(dir((data[name])))
-      #                   # print(type((data[name])))
-      #             except:
                         
-      #                   print('did nothing')
-      #                   print(type(data[name][0]) == type(np.array([])))
-      #                   if (type(data[name][0])) == type(np.array([])):
-      #                         if (data[name][0].ndim)==2:
-      #                               status = f.createVariable(name,(data[name][0]).dtype,('x','y'))
-      #                         elif (data[name][0].ndim)==1:
-      #                               status = f.createVariable(name,(data[name][0]).dtype,('x'))
-      #                         else:
-      #                               status = f.createVariable(name,(data[name][0]).dtype)
-
-      #                         print((data[name][0]).dtype)
-      # # for elem in enumerate(data.dtype):
-      # #       print(elem)
-
-      # print((data.dtype))
+                        #var = f.createVariable(name,(data[name][0]).dtype)
+                        
+                        print(name.lower())
+                        
+                        #try:
+                        print(type(data[name])) #fail
+                        print(type(data[name][0]))
+                        print('dtype')
+                        
+                        print(data[name].dtype)
+                        print(data[name][0].dtype)
+                        var = f.createVariable(name,data[name][0].dtype,())
       
       f.close()
 
@@ -115,15 +88,28 @@ def examine_grid():
       s = readsav('/tmp/hlmktmp.dat')
       data = s['data'] #now we'll dump this to a netcdf
       
-      print((data['RXY'])[0][15,:])
+      print((data['x_array'])[0])
       f = netcdf.netcdf_file('hlmk.nc', 'r')
       R = f.variables['RXY']
       print('in .nc')
-      print(R.data[15,:])
+      print(R.data[:,15])
       print(R.shape)
-      
-      Teo = f.variables['TE0']
 
+      print(f.variables.keys())
+      xarray = f.variables['X_ARRAY']
+      print('xarray')
+      print(xarray.data)
+
+      Teo = f.variables['TE0']
+      print(Teo.data[:,15])
+      
+      ni_x = f.variables['NI_X']
+      print(ni_x.data)
+      
+      n0 = f.variables['NI0']  
+      print(n0.data[15,:])
+      print(n0.data.mean())
+      
 # def write_cyl_grid(gridfile='standard.nc',nx = 32,ny=3,dx=1,dy=1,
 #                    ni0=1.0e17,Te0=10.0,Ti0 =1.0,
 #                    Bz0=.01,bphi0=.1,
