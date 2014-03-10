@@ -18,6 +18,11 @@ from matplotlib.lines import Line2D
 import mpl_toolkits.axisartist as axisartist
 import pylab
 
+import pylab
+import matplotlib.axis as axis
+
+# print dir(xtick)                
+# exit()
 # except:
 #     print "Can't import what you need"
 
@@ -190,13 +195,219 @@ class Frame(np.ndarray):
         #     fig.add_subplot(ax)
          
         # ax = setup_axes(fig,221)  
-       
+        axes = {'linewidth': .5}
+        tickset ={'markeredgewidth': .25}
+        
+        # from matplotlib import rc
+
+        # font = {'family' : 'normal',
+        #         'weight' : 'normal'}
+
+        # rc('font', **font)
+        # rc('axes',**axes)
+        # rc('lines',**tickset)
+        
+        
+        
+        #plt.tick_params(axis='both',direction='in',which='both')
         #once rendered self.ax is always a regural maptplot axis object
 
         if self.ax == None:
             self.ax = fig.add_subplot(rect,rasterized=rasterized)
         
+# except:
+#     print "Can't import what you need"
+
+
+# generic frame object, derives from ndarray since at its core its basically
+# data with some annotations,metadata and presentation parameters
+# http://docs.scipy.org/doc/numpy/user/basics.subclassing.html
+
+class Frame(np.ndarray):
+
+    def __new__(cls, data,meta=None):
+        print 'new frame'
+        # Input array is an already formed ndarray instance
+        # We first cast to be our class type
+        #obj = np.asarray(data).view(cls)  
+        obj = np.asarray(data).view(cls)
+        # add the new attribute to the created instance
         
+        if meta is not None:
+            for k, v in meta.items():
+                setattr(obj, k, v)
+        
+        defaults = {'dx':1,'x0':0,'dy':1,'y0':0,'stationary':False,
+                    'yscale':'linear','title':'','xlabel':'','ylabel':'',
+                    'style':'','fontsz':6,'ticksize':6,'contour_only':False,
+                    'alpha':1,'cmap':'Blues','colors':'k','markersize':30,'raster':True,
+                    'linewidth':1}   
+        
+
+        for key,val in defaults.items():
+            if not hasattr(obj,key):
+                #print 'setting: ',key,val
+                setattr(obj, key, val)
+
+        #its more economical to set some defaults rather than have to re-enter for each array type
+        
+
+   
+        if not obj.stationary:   
+            if obj.ndim == 3:   
+                obj.nt,obj.nx, obj.ny = obj.shape
+                nt,nx,ny = obj.shape
+                obj.amp = abs(obj).max(1).max(1)
+                
+                #for now limit ourselves to 0 or 1D dx dy arrays
+                obj.x = obj.dx*np.arange(obj.nx)
+                obj.x = np.repeat(obj.x,obj.ny)
+                obj.x = obj.x.reshape(nx,ny)
+                
+                obj.y = obj.dy*np.arange(obj.ny)
+                obj.y = np.repeat(obj.y,obj.nx)
+                obj.y = np.transpose(obj.y.reshape(ny,nx))
+        
+                 
+                
+                #print obj.dx,obj.dy
+            elif obj.ndim == 2:
+                obj.nt, obj.nx = obj.shape
+                obj.x = obj.x0+obj.dx*np.arange(obj.nx)
+                obj.Lx = obj.x.max()
+                
+            elif obj.ndim == 1:
+                obj.nt = obj.shape[0]
+                obj.x = obj.x0+obj.dx*np.arange(obj.nt)
+        else:
+            if obj.ndim == 3:   
+                obj.nx,obj.ny, obj.nz = obj.shape
+                obj.amp = abs(obj).max()
+            elif obj.ndim == 2:
+                obj.nx, obj.ny = obj.shape
+                obj.x = obj.x0+obj.dx*np.arange(obj.nx)
+                obj.y = obj.y0+obj.dy*np.arange(obj.ny)
+            elif obj.ndim == 1:
+                obj.nx = obj.shape[0] 
+                obj.x = obj.x0+obj.dx*np.arange(obj.nx)
+            if not hasattr(obj,'nt'):
+                obj.nt = 1
+    
+        print 'nt: ', obj.nt  
+      
+        if hasattr(obj, 'center'):
+            print nx,ny
+            if obj.center==True:
+                data = np.roll(data,nx/2,axis=1)
+                data = np.roll(data,ny/2,axis=2)
+        
+    
+        if hasattr(obj,'zoom'):
+            data = data[:,obj.nx/2-obj.nx/16:obj.nx/2+obj.nx/16,
+                          obj.ny/2-obj.ny/16:obj.ny/2+obj.ny/16]
+     
+        #obj = np.asarray(data).view(cls)  
+        
+        if meta is not None:
+            for k, v in meta.items():
+                setattr(obj, k, v)
+
+             
+        if not hasattr(obj,'data_c'):
+        #     print 'no data_c'
+            obj.data_c = data
+      
+        print 'nt: ', obj.nt  
+        
+
+        #params for 2d (imshow)
+        obj.interpolation='bilinear'
+        obj.aspect = 'auto'
+        obj.cmap= plt.get_cmap(obj.cmap,2000) 
+        obj.t = 0
+        
+        
+        #we can't expect pointer to work if we reissun
+        
+        #create a dummy figure,scence variable
+        #fig = plt.figure()
+
+        obj.img = None
+        obj.ax = None
+        obj.img_sig = None
+        obj.mesh = None
+        obj.ax_3d = None
+        
+        # imgrid.append(ax.imshow(data_n[0,:,:],aspect='auto',cmap=jet,
+        #                         interpolation='bicubic'))
+        # Finally, we must return the newly created object:
+        return obj
+    
+    def array_finalize(self, obj):
+        #print 'array_finalize'
+
+        #copy all frame like attributes - not nd.array-like ones
+
+        #see whats missing
+        copyme = set(dir(obj)).difference(set(dir(self)))
+        #print copyme
+        
+        
+        for key in copyme:
+            if not hasattr(self,key): #why 2x check?
+                setattr(self, key, getattr(obj,key))
+
+    # def __array_finalize__(self, obj):
+    #     #print 'array_finalize'
+
+    #     #copy all frame like attributes - not nd.array-like ones
+
+    #     #see whats missing
+    #     copyme = set(dir(obj)).difference(set(dir(self)))
+    #     #print copyme
+        
+        
+    #     for key in copyme:
+    #         if not hasattr(self,key): #why 2x check?
+    #             setattr(self, key, getattr(obj,key))
+   
+        
+    def reset(self):
+        self.ax = None
+        self.img = None
+        self.img_sig = None
+        self.ax_3d = None
+        self.t = 0
+
+    def render(self,fig,rect,rasterized=False):
+        
+        #print 'render !'
+        # def setup_axes(fig, rect):
+        #     ax = axisartist.Subplot(fig, rect)
+        #     fig.add_subplot(ax)
+         
+        # ax = setup_axes(fig,221)  
+        axes = {'linewidth': .5}
+        tickset ={'markeredgewidth': .25}
+        
+        # from matplotlib import rc
+
+        # font = {'family' : 'normal',
+        #         'weight' : 'normal'}
+
+        # rc('font', **font)
+        # rc('axes',**axes)
+        # rc('lines',**tickset)
+        
+        
+        
+        #plt.tick_params(axis='both',direction='in',which='both')
+        #once rendered self.ax is always a regural maptplot axis object
+
+        if self.ax == None:
+            self.ax = fig.add_subplot(rect,rasterized=rasterized)
+        #xtick = matplotlib.axis.XTick
+       
         #print self.ax,self.ndim  
         
         # if type(self.ax) is list:  
