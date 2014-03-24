@@ -22,7 +22,7 @@ def run_idl_grid():
       print(idl_stdout)
 
 
-def hlmk_grid(refresh=False):
+def hlmk_grid(refresh=True):
       import subprocess,sys,os
       from scipy.io.idl import readsav
       import numpy as np
