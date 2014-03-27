@@ -36,3 +36,8 @@ try:
     from primitivegrd import write_grid
 except:
     print 'no write grid'
+
+try:
+    from examine_nc import examine_nc
+except:
+    print 'no examine_grid'

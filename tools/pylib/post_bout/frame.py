@@ -101,7 +101,7 @@ class Frame(np.ndarray):
             if not hasattr(obj,'nt'):
                 obj.nt = 1
     
-        print 'nt: ', obj.nt  
+       # print 'nt: ', obj.nt  
       
         if hasattr(obj, 'center'):
             print nx,ny
@@ -125,7 +125,7 @@ class Frame(np.ndarray):
         #     print 'no data_c'
             obj.data_c = data
       
-        print 'nt: ', obj.nt  
+       # print 'nt: ', obj.nt  
         
 
         #params for 2d (imshow)

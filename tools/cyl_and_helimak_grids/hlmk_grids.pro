@@ -143,7 +143,9 @@ pro hlmk_grids,full=full,Lc = Lc, $
   ;to avoid making this thing too general I will myself to 
   ;assuming that this script will simply allow the user to tweak
   ;Bz(connection length), phi0V, ni and Te gradients,  
-  
+  openw, unit, 'gridnames.txt',/get_lun
+    
+     
 
   ;we need a way to append some metadata to the grids rather than
   ;just creating long ugly filenames
@@ -242,21 +244,18 @@ pro hlmk_grids,full=full,Lc = Lc, $
   if not keyword_set(Ni0) then Ni0 = 5e16
   
   ;we we create 10 grid with different Te gradient
-  for i=0,8 do begin
+  for i=0,0 do begin
      slope_n = (i-4.)/4. * slope_n_amp 
      slope_te = 0.0
      slope_ti = 0.0
-     lam_n = (10+(i-4.)/1.0)/100
+     lam_n = (10+(i-4.)/1.0)/100.0
      ;lam_n = (10+(i-4.)/1.0)/1000
      te0 = Te0
      ni0 = Ni0
      print,"lam_n: ",lam_n
-     
-     
-     temp = [gridname,"_",string(Nr-4),"x",string(Nz),"_",sigfig(lam_n,2,sci = sci),"_lam_n.nc"]
-
-     filename = strcompress(strjoin(temp),/remove_all)
-
+ 
+     filename = strcompress(gridname +"_"+ string(Nr-4)+"x"+string(Nz)+"_"+string(lam_n)+"_lam_n.dat",/remove_all)
+     print, filename 
      
      set_mesh_cyl,/export,Nr = Nr, Nz = Nz,rMin = rMin, rMax = rMax,ni0 =ni0 $
                   ,te0=te0,Bz0 = Bz0,bphi0 = bphi0,Zmax=Zmax,$
@@ -265,7 +264,14 @@ pro hlmk_grids,full=full,Lc = Lc, $
                   ti_profile_type = ti_profile_type,phi_profile_type = phi_profile_type,$            
                   slope_te = slope_te, slope_ti = slope_ti,$
                   slope_n = slope_n,lam_n = lam_n
+     print, 'filename in hlmk_grids: ', filename
      read_uedata3, /s, d, /noref, /NOPLOTS,/nopdb,filename = filename
+     
+
+     writeu, unit,filename+string(10B)
+   
+   
+     ;;stash the filename for later use
      spawn,"rm *.pdb"
 
   endfor
@@ -283,5 +289,5 @@ pro hlmk_grids,full=full,Lc = Lc, $
   
 ;;   oplot,(shot_data.set3.vfloat)[*,6]
   
-  
+  free_lun, unit 
 end
