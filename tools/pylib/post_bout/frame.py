@@ -49,7 +49,7 @@ class Frame(np.ndarray):
                     'yscale':'linear','title':'','xlabel':'','ylabel':'',
                     'style':'','fontsz':6,'ticksize':6,'contour_only':False,
                     'alpha':1,'cmap':'Blues','colors':'k','markersize':30,'raster':True,
-                    'linewidth':1}   
+                    'linewidth':.3}   
         
 
         for key,val in defaults.items():
@@ -241,7 +241,7 @@ class Frame(np.ndarray):
                     'yscale':'linear','title':'','xlabel':'','ylabel':'',
                     'style':'','fontsz':6,'ticksize':6,'contour_only':False,
                     'alpha':1,'cmap':'Blues','colors':'k','markersize':30,'raster':True,
-                    'linewidth':1}   
+                    'linewidth':.3}   
         
 
         for key,val in defaults.items():
@@ -438,7 +438,8 @@ class Frame(np.ndarray):
                         interpolation=self.interpolation,
                         extent=[self.x.min(),self.x.max(),
                                 self.y.min(),self.y.max()],
-                        origin='lower',rasterized = self.raster)
+                        origin='lower',rasterized = self.raster,
+                        linewidths=self.linewidth)
                     #self.ax_3d = fig.gca(projection='3d')
                     # X, Y = np.meshgrid(self.x, self.y)
                     # self.mesh = self.ax_3d.plot_surface(X,Y,((self[t,:,:].real)/self.amp[t]).transpose())
@@ -469,7 +470,7 @@ class Frame(np.ndarray):
             if removeZero:   
                 levels = levels[np.where(np.min(np.abs(levels)) < np.abs(levels))]
             
-            self.cset = self.ax.contour(self.x,self.y,wire,self.cset_levels,colors='k',alpha=1,linewidth=1)
+            self.cset = self.ax.contour(self.x,self.y,wire,self.cset_levels,colors='k',alpha=1,linewidths=self.linewidth)
             
             if hasattr(self,'overplot'):
                 if type(self.overplot) is list:
@@ -513,7 +514,7 @@ class Frame(np.ndarray):
             if self.stationary:
                 if self.contour_only:
                     self.cset = self.ax.contour(self.x,self.y,self.transpose(),alpha = self.alpha,
-                                                colors=self.colors)
+                                                colors=self.colors,linewidths=self.linewidth)
                     
                 else:
 
@@ -607,7 +608,7 @@ class Frame(np.ndarray):
                 nlevels = self.nlevels
                 self.cset_levels = np.linspace(np.min(wire.real), 
                                                np.max(wire.real),nlevels)
-                self.cset = self.ax.contour(self.x,self.y,wire.real,self.cset_levels,colors='k',alpha=.7,linewidths=.5)
+                self.cset = self.ax.contour(self.x,self.y,wire.real,self.cset_levels,colors='k',alpha=.7,linewidths=self.linewidth)
             #2D
             elif self.ndim ==2:
                 if self.stationary:
