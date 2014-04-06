@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import cm
+from matplotlib import cm, rcParams
 #from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
@@ -20,7 +20,7 @@ import pylab
 
 import pylab
 import matplotlib.axis as axis
-
+rcParams['contour.negative_linestyle'] = 'solid'
 # print dir(xtick)                
 # exit()
 # except:
@@ -49,7 +49,7 @@ class Frame(np.ndarray):
                     'yscale':'linear','title':'','xlabel':'','ylabel':'',
                     'style':'','fontsz':6,'ticksize':6,'contour_only':False,
                     'alpha':1,'cmap':'Blues','colors':'k','markersize':30,'raster':True,
-                    'linewidth':.3}   
+                    'linewidth':1,'nlevels':20}   
         
 
         for key,val in defaults.items():
@@ -130,9 +130,11 @@ class Frame(np.ndarray):
 
         #params for 2d (imshow)
         obj.interpolation='bilinear'
+        #obj.interpolocation='cubic'
         obj.aspect = 'auto'
         obj.cmap= plt.get_cmap(obj.cmap,2000) 
         obj.t = 0
+        
         
         
         #we can't expect pointer to work if we reissun
@@ -145,6 +147,7 @@ class Frame(np.ndarray):
         obj.img_sig = None
         obj.mesh = None
         obj.ax_3d = None
+        obj.cset_levels = None
         
         # imgrid.append(ax.imshow(data_n[0,:,:],aspect='auto',cmap=jet,
         #                         interpolation='bicubic'))
@@ -448,8 +451,8 @@ class Frame(np.ndarray):
                 
                 print self.x.shape, self.y.shape
             
-            nlevels = 7
-            self.nlevels = nlevels
+            # nlevels = 20
+            #self.nlevels = nlevels
             # if len(self.shape)==2:
             #     wire = obj
             # else: 
@@ -464,13 +467,15 @@ class Frame(np.ndarray):
                 wire = self.data_c
 
             self.cset_levels = np.linspace(np.min(wire), 
-                                           np.max(wire),nlevels)
+                                           np.max(wire),self.nlevels)
             levels = self.cset_levels
             removeZero = True
             if removeZero:   
                 levels = levels[np.where(np.min(np.abs(levels)) < np.abs(levels))]
             
-            self.cset = self.ax.contour(self.x,self.y,wire,self.cset_levels,colors='k',alpha=1,linewidths=self.linewidth)
+            self.cset = self.ax.contour(self.x,self.y,wire,self.cset_levels,alpha=1,linewidths=self.linewidth)
+            self.cset_levels = np.linspace(np.min(wire), 
+                                           np.max(wire),self.nlevels)
             
             if hasattr(self,'overplot'):
                 if type(self.overplot) is list:
@@ -513,7 +518,8 @@ class Frame(np.ndarray):
             #print 'render 2'
             if self.stationary:
                 if self.contour_only:
-                    self.cset = self.ax.contour(self.x,self.y,self.transpose(),alpha = self.alpha,
+                    self.cset = self.ax.contour(self.x,self.y,self.transpose(),
+                                                alpha = self.alpha,
                                                 colors=self.colors,linewidths=self.linewidth)
                     
                 else:
@@ -607,8 +613,8 @@ class Frame(np.ndarray):
                    
                 nlevels = self.nlevels
                 self.cset_levels = np.linspace(np.min(wire.real), 
-                                               np.max(wire.real),nlevels)
-                self.cset = self.ax.contour(self.x,self.y,wire.real,self.cset_levels,colors='k',alpha=.7,linewidths=self.linewidth)
+                                               np.max(wire.real),self.nlevels)
+                self.cset = self.ax.contour(self.x,self.y,wire.real,self.cset_levels,alpha=.7,linewidths=self.linewidth)
             #2D
             elif self.ndim ==2:
                 if self.stationary:
