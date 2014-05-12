@@ -1,0 +1,107 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [2][-]{subsection.1.1}{License and terms of use}{section.1}% 2
+\BOOKMARK [1][-]{section.2}{Getting started}{}% 3
+\BOOKMARK [2][-]{subsection.2.1}{Obtaining BOUT++}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.2}{Installing an MPI compiler}{section.2}% 5
+\BOOKMARK [2][-]{subsection.2.3}{Installing libraries}{section.2}% 6
+\BOOKMARK [2][-]{subsection.2.4}{Configuring analysis routines}{section.2}% 7
+\BOOKMARK [2][-]{subsection.2.5}{Compiling BOUT++}{section.2}% 8
+\BOOKMARK [2][-]{subsection.2.6}{Running the test suite}{section.2}% 9
+\BOOKMARK [1][-]{section.3}{Advanced installation options}{}% 10
+\BOOKMARK [2][-]{subsection.3.1}{File formats}{section.3}% 11
+\BOOKMARK [2][-]{subsection.3.2}{SUNDIALS}{section.3}% 12
+\BOOKMARK [2][-]{subsection.3.3}{PETSc}{section.3}% 13
+\BOOKMARK [2][-]{subsection.3.4}{LAPACK}{section.3}% 14
+\BOOKMARK [2][-]{subsection.3.5}{MUMPS}{section.3}% 15
+\BOOKMARK [2][-]{subsection.3.6}{MPI compilers}{section.3}% 16
+\BOOKMARK [2][-]{subsection.3.7}{Issues}{section.3}% 17
+\BOOKMARK [3][-]{subsubsection.3.7.1}{Wrong install script}{subsection.3.7}% 18
+\BOOKMARK [3][-]{subsubsection.3.7.2}{Compiling cvode.cxx fails}{subsection.3.7}% 19
+\BOOKMARK [1][-]{section.4}{Running BOUT++}{}% 20
+\BOOKMARK [2][-]{subsection.4.1}{When things go wrong}{section.4}% 21
+\BOOKMARK [2][-]{subsection.4.2}{Startup output}{section.4}% 22
+\BOOKMARK [2][-]{subsection.4.3}{Per-timestep output}{section.4}% 23
+\BOOKMARK [2][-]{subsection.4.4}{Restarting runs}{section.4}% 24
+\BOOKMARK [1][-]{section.5}{Output and post-processing}{}% 25
+\BOOKMARK [2][-]{subsection.5.1}{Note on reading PDB files}{section.5}% 26
+\BOOKMARK [2][-]{subsection.5.2}{Reading BOUT++ output into IDL}{section.5}% 27
+\BOOKMARK [2][-]{subsection.5.3}{Summary of IDL file routines}{section.5}% 28
+\BOOKMARK [2][-]{subsection.5.4}{IDL analysis routines}{section.5}% 29
+\BOOKMARK [2][-]{subsection.5.5}{Python routines}{section.5}% 30
+\BOOKMARK [2][-]{subsection.5.6}{Matlab routines}{section.5}% 31
+\BOOKMARK [2][-]{subsection.5.7}{Mathematica routines}{section.5}% 32
+\BOOKMARK [2][-]{subsection.5.8}{Octave routines}{section.5}% 33
+\BOOKMARK [1][-]{section.6}{BOUT++ options}{}% 34
+\BOOKMARK [2][-]{subsection.6.1}{Command line options}{section.6}% 35
+\BOOKMARK [2][-]{subsection.6.2}{General options}{section.6}% 36
+\BOOKMARK [2][-]{subsection.6.3}{Time integration solver}{section.6}% 37
+\BOOKMARK [2][-]{subsection.6.4}{Input and Output}{section.6}% 38
+\BOOKMARK [2][-]{subsection.6.5}{Laplacian inversion}{section.6}% 39
+\BOOKMARK [2][-]{subsection.6.6}{Communications}{section.6}% 40
+\BOOKMARK [2][-]{subsection.6.7}{Differencing methods}{section.6}% 41
+\BOOKMARK [2][-]{subsection.6.8}{Model-specific options}{section.6}% 42
+\BOOKMARK [2][-]{subsection.6.9}{Variable initialisation}{section.6}% 43
+\BOOKMARK [3][-]{subsubsection.6.9.1}{Original method}{subsection.6.9}% 44
+\BOOKMARK [3][-]{subsubsection.6.9.2}{Expressions}{subsection.6.9}% 45
+\BOOKMARK [2][-]{subsection.6.10}{Boundary conditions}{section.6}% 46
+\BOOKMARK [3][-]{subsubsection.6.10.1}{Relaxing boundaries}{subsection.6.10}% 47
+\BOOKMARK [3][-]{subsubsection.6.10.2}{Shifted boundaries}{subsection.6.10}% 48
+\BOOKMARK [3][-]{subsubsection.6.10.3}{Changing the width of boundaries}{subsection.6.10}% 49
+\BOOKMARK [3][-]{subsubsection.6.10.4}{Examples}{subsection.6.10}% 50
+\BOOKMARK [1][-]{section.7}{Generating input grids}{}% 51
+\BOOKMARK [2][-]{subsection.7.1}{From EFIT files}{section.7}% 52
+\BOOKMARK [2][-]{subsection.7.2}{From ELITE and GATO files}{section.7}% 53
+\BOOKMARK [2][-]{subsection.7.3}{Generating equilibria}{section.7}% 54
+\BOOKMARK [2][-]{subsection.7.4}{Running pdb2bout}{section.7}% 55
+\BOOKMARK [1][-]{section.8}{Fluid equations}{}% 56
+\BOOKMARK [2][-]{subsection.8.1}{Variables}{section.8}% 57
+\BOOKMARK [2][-]{subsection.8.2}{Evolution equations}{section.8}% 58
+\BOOKMARK [2][-]{subsection.8.3}{Input options}{section.8}% 59
+\BOOKMARK [2][-]{subsection.8.4}{Communication}{section.8}% 60
+\BOOKMARK [2][-]{subsection.8.5}{Boundary conditions}{section.8}% 61
+\BOOKMARK [3][-]{subsubsection.8.5.1}{Custom boundary conditions}{subsection.8.5}% 62
+\BOOKMARK [2][-]{subsection.8.6}{Initial profiles}{section.8}% 63
+\BOOKMARK [2][-]{subsection.8.7}{Output variables}{section.8}% 64
+\BOOKMARK [1][-]{section.9}{Fluid equations 2: reduced MHD}{}% 65
+\BOOKMARK [2][-]{subsection.9.1}{Printing messages/warnings}{section.9}% 66
+\BOOKMARK [2][-]{subsection.9.2}{Laplacian inversion}{section.9}% 67
+\BOOKMARK [2][-]{subsection.9.3}{Error handling}{section.9}% 68
+\BOOKMARK [1][-]{section.10}{Object-orientated interface}{}% 69
+\BOOKMARK [1][-]{section.11}{Differential operators}{}% 70
+\BOOKMARK [2][-]{subsection.11.1}{Differencing methods}{section.11}% 71
+\BOOKMARK [2][-]{subsection.11.2}{Non-uniform meshes}{section.11}% 72
+\BOOKMARK [2][-]{subsection.11.3}{Operators}{section.11}% 73
+\BOOKMARK [2][-]{subsection.11.4}{Setting differencing method}{section.11}% 74
+\BOOKMARK [1][-]{section.12}{Staggered grids}{}% 75
+\BOOKMARK [1][-]{section.13}{Advanced methods}{}% 76
+\BOOKMARK [2][-]{subsection.13.1}{Preconditioning}{section.13}% 77
+\BOOKMARK [2][-]{subsection.13.2}{Jacobian function}{section.13}% 78
+\BOOKMARK [2][-]{subsection.13.3}{DAE constraint equations}{section.13}% 79
+\BOOKMARK [2][-]{subsection.13.4}{Monitoring the simulation output}{section.13}% 80
+\BOOKMARK [1][-]{section.14}{Examples}{}% 81
+\BOOKMARK [2][-]{subsection.14.1}{advect1d}{section.14}% 82
+\BOOKMARK [2][-]{subsection.14.2}{drift-instability}{section.14}% 83
+\BOOKMARK [2][-]{subsection.14.3}{em-drift}{section.14}% 84
+\BOOKMARK [2][-]{subsection.14.4}{gyro-gem}{section.14}% 85
+\BOOKMARK [2][-]{subsection.14.5}{interchange-instability}{section.14}% 86
+\BOOKMARK [2][-]{subsection.14.6}{jorek-compare}{section.14}% 87
+\BOOKMARK [2][-]{subsection.14.7}{lapd-drift}{section.14}% 88
+\BOOKMARK [2][-]{subsection.14.8}{orszag-tang}{section.14}% 89
+\BOOKMARK [2][-]{subsection.14.9}{shear-alfven-wave}{section.14}% 90
+\BOOKMARK [2][-]{subsection.14.10}{sod-shock}{section.14}% 91
+\BOOKMARK [2][-]{subsection.14.11}{uedge-benchmark}{section.14}% 92
+\BOOKMARK [1][-]{section.15}{Notes}{}% 93
+\BOOKMARK [2][-]{subsection.15.1}{Compile options}{section.15}% 94
+\BOOKMARK [2][-]{subsection.15.2}{Adaptive grids}{section.15}% 95
+\BOOKMARK [3][-]{subsubsection.15.2.1}{Moving meshes}{subsection.15.2}% 96
+\BOOKMARK [3][-]{subsubsection.15.2.2}{Changing resolution}{subsection.15.2}% 97
+\BOOKMARK [1][-]{appendix.A}{Installing PACT}{}% 98
+\BOOKMARK [2][-]{subsection.A.1}{Self-extracting package}{appendix.A}% 99
+\BOOKMARK [2][-]{subsection.A.2}{PACT source distribution}{appendix.A}% 100
+\BOOKMARK [1][-]{appendix.B}{Compiling and running under AIX}{}% 101
+\BOOKMARK [2][-]{subsection.B.1}{SUNDIALS}{appendix.B}% 102
+\BOOKMARK [1][-]{appendix.C}{BOUT++ functions \(alphabetical\)}{}% 103
+\BOOKMARK [1][-]{appendix.D}{IDL routines}{}% 104
+\BOOKMARK [1][-]{appendix.E}{Python routines \(alphabetical\)}{}% 105
+\BOOKMARK [2][-]{subsection.E.1}{boututils}{appendix.E}% 106
+\BOOKMARK [2][-]{subsection.E.2}{boutdata}{appendix.E}% 107

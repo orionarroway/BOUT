@@ -1,0 +1,87 @@
+\begin{theindex}
+
+  \item boundary conditions, \hyperpage{40}, \hyperpage{58}
+  \item Boundary modifiers, \hyperpage{42}
+  \item BoutReal, \hyperpage{53}
+
+  \indexspace
+
+  \item Clebsh, \hyperpage{71}
+  \item comm\_handle, \hyperpage{57}
+  \item Command line, \hyperpage{32}
+  \item communication, \hyperpage{37}, \hyperpage{56}
+  \item cvode.cxx, \hyperpage{14}
+
+  \indexspace
+
+  \item differencing, \hyperpage{37}, \hyperpage{68}
+  \item dskgato, \hyperpage{46}
+
+  \indexspace
+
+  \item EFIT, \hyperpage{46}
+  \item ELITE, \hyperpage{46}
+  \item Expressions, \hyperpage{39}
+
+  \indexspace
+
+  \item Field3D, \hyperpage{53}
+  \item FieldFactory, \hyperpage{39}
+  \item FieldGroup, \hyperpage{56}
+  \item function, \hyperpage{39}
+
+  \indexspace
+
+  \item GATO, \hyperpage{46}
+  \item Github, \hyperpage{4}
+  \item GRID\_LOAD, \hyperpage{61}
+
+  \indexspace
+
+  \item Hypnotoad, \hyperpage{46}
+
+  \indexspace
+
+  \item IDL, \hyperpage{26}
+
+  \indexspace
+
+  \item Laplacian inversion, \hyperpage{36}, \hyperpage{64}
+
+  \indexspace
+
+  \item metric tensor, \hyperpage{45}
+  \item msg\_stack, \hyperpage{66}
+
+  \indexspace
+
+  \item non-uniform mesh, \hyperpage{69}
+
+  \indexspace
+
+  \item Options, \hyperpage{55}
+  \item options, \hyperpage{32}
+  \item output, \hyperpage{64}
+
+  \indexspace
+
+  \item PACT, \hyperpage{81}
+  \item Python, \hyperpage{30}
+
+  \indexspace
+
+  \item SAVE\_ONCE, \hyperpage{62}
+  \item SOLVE\_FOR, \hyperpage{54}
+  \item staggered grids, \hyperpage{72}
+  \item Symmetric initial conditions, \hyperpage{40}
+
+  \indexspace
+
+  \item time integration, \hyperpage{34}
+
+  \indexspace
+
+  \item variable initialisation, \hyperpage{38}, \hyperpage{61}
+  \item Vector3D, \hyperpage{53}
+
+\end{theindex}

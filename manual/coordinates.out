@@ -1,0 +1,23 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Orthogonal toroidal coordinates}{}% 2
+\BOOKMARK [1][-]{section.3}{Field-aligned coordinates}{}% 3
+\BOOKMARK [2][-]{subsection.3.1}{Magnetic field}{section.3}% 4
+\BOOKMARK [2][-]{subsection.3.2}{Jacobian and metric tensors}{section.3}% 5
+\BOOKMARK [2][-]{subsection.3.3}{Differential operators}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.4}{JB in field-aligned coordinates}{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.5}{Parallel current}{section.3}% 8
+\BOOKMARK [2][-]{subsection.3.6}{Curvature}{section.3}% 9
+\BOOKMARK [2][-]{subsection.3.7}{Curvature from \(b/ B\)}{section.3}% 10
+\BOOKMARK [2][-]{subsection.3.8}{Curvature of a single line}{section.3}% 11
+\BOOKMARK [2][-]{subsection.3.9}{Curvature in toroidal coordinates}{section.3}% 12
+\BOOKMARK [2][-]{subsection.3.10}{ derivative of B field}{section.3}% 13
+\BOOKMARK [2][-]{subsection.3.11}{Parallel derivative of B field}{section.3}% 14
+\BOOKMARK [2][-]{subsection.3.12}{Magnetic shear from JB}{section.3}% 15
+\BOOKMARK [2][-]{subsection.3.13}{Magnetic shear}{section.3}% 16
+\BOOKMARK [2][-]{subsection.3.14}{ derivative of h}{section.3}% 17
+\BOOKMARK [1][-]{section.4}{Shifted radial derivatives}{}% 18
+\BOOKMARK [2][-]{subsection.4.1}{Perpendicular Laplacian}{section.4}% 19
+\BOOKMARK [3][-]{subsubsection.4.1.1}{In orthogonal \(, , \) flux coordinates}{subsection.4.1}% 20
+\BOOKMARK [2][-]{subsection.4.2}{Operator BA}{section.4}% 21
+\BOOKMARK [1][-]{appendix.A}{Differential geometry}{}% 22
+\BOOKMARK [1][-]{appendix.B}{Divergence of ExB velocity}{}% 23

@@ -1,0 +1,6 @@
+This is makeindex, version 2.15 [TeX Live 2012] (kpathsea + Thai support).
+Scanning input file user_manual.idx....done (43 entries accepted, 0 rejected).
+Sorting entries....done (233 comparisons).
+Generating output file user_manual.ind....done (87 lines written, 0 warnings).
+Output written in user_manual.ind.
+Transcript written in user_manual.ilg.

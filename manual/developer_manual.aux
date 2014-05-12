@@ -1,0 +1,107 @@
+\relax 
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldcontentsline\contentsline
+\gdef\contentsline#1#2#3#4{\oldcontentsline{#1}{#2}{#3}}
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\contentsline\oldcontentsline
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\HyField@AuxAddToFields[1]{}
+\citation{Dudson2009}
+\citation{dudson-2008-arxiv}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{3}{section.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Using the BOUT++ repository}{3}{subsection.1.1}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.1.1}Developing BOUT++}{5}{subsubsection.1.1.1}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.1.2}Accessing github from behind a firewall}{5}{subsubsection.1.1.2}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.1.3}Creating a private repository}{6}{subsubsection.1.1.3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}House rules}{8}{subsection.1.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3}Coding conventions}{8}{subsection.1.3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.4}Testing}{9}{subsection.1.4}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Code layout}{9}{section.2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Overview of BOUT++ control flow during initialisation (red), and running (blue)}}{10}{figure.1}}
+\newlabel{fig:layout1}{{1}{10}{Overview of BOUT++ control flow during initialisation (red), and running (blue)\relax }{figure.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Relationship between important classes and functions used in calculating the RHS function}}{11}{figure.2}}
+\newlabel{fig:layout2}{{2}{11}{Relationship between important classes and functions used in calculating the RHS function\relax }{figure.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Directories}{11}{subsection.2.1}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Data types}{17}{section.3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}\texttt  {FieldData}}{18}{subsection.3.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}\texttt  {Field}}{18}{subsection.3.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}\texttt  {Vector}}{19}{subsection.3.3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}\texttt  {dcomplex}}{19}{subsection.3.4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Memory management}{19}{subsection.3.5}}
+\newlabel{sec:memorymanage}{{3.5}{19}{Memory management\relax }{subsection.3.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Memory handling in BOUT++. Memory allocation and freeing is eliminated by recycling memory blocks, and assignments without changes (\texttt  {A = B}) do not result in copying data, only pointers to the data. Both these optimisations are handled internally, and are invisible to the programmer.}}{20}{figure.3}}
+\newlabel{fig:memory}{{3}{20}{Memory handling in BOUT++. Memory allocation and freeing is eliminated by recycling memory blocks, and assignments without changes (\code {A = B}) do not result in copying data, only pointers to the data. Both these optimisations are handled internally, and are invisible to the programmer}{figure.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Derivatives}{21}{section.4}}
+\newlabel{sec:derivatives}{{4}{21}{Derivatives\relax }{section.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Overview of \texttt  {derivs} module, mapping derivative functions on fields to direction-independent differential methods}}{21}{figure.4}}
+\newlabel{fig:diffOverview}{{4}{21}{Overview of \code {derivs} module, mapping derivative functions on fields to direction-independent differential methods\relax }{figure.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Lookup tables}{22}{subsection.4.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Staggered grids}{23}{subsection.4.2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Lookup tables for mapping between differential method labels, codes, descriptions and function pointers}}{24}{figure.5}}
+\newlabel{fig:diffLookup}{{5}{24}{Lookup tables for mapping between differential method labels, codes, descriptions and function pointers\relax }{figure.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Stencils with cell-centred (solid) and lower shifted values (open). Processor boundaries marked by vertical dashed line}}{25}{figure.6}}
+\newlabel{fig:diffStencils}{{6}{25}{Stencils with cell-centred (solid) and lower shifted values (open). Processor boundaries marked by vertical dashed line\relax }{figure.6}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces DDX actions depending on input and output locations. Uses first match.}}{25}{table.1}}
+\newlabel{tab:ddxloc}{{1}{25}{DDX actions depending on input and output locations. Uses first match}{table.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Laplacian inversion}{26}{section.5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Serial tridiagonal solver}{27}{subsection.5.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Serial band solver}{27}{subsection.5.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}SPT parallel tridiagonal}{27}{subsection.5.3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}PDD algorithm}{27}{subsection.5.4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Parallel Laplacian inversion with MYSUB=3 on 4 processors. Red periods are where a processor is idle - in this case about 40\% of the time}}{28}{figure.7}}
+\newlabel{fig:par_laplace}{{7}{28}{Parallel Laplacian inversion with MYSUB=3 on 4 processors. Red periods are where a processor is idle - in this case about 40\% of the time\relax }{figure.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Mesh}{29}{section.6}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Grid data sources}{29}{subsection.6.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Loading a mesh}{30}{subsection.6.2}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.1}Implementation: BoutMesh}{30}{subsubsection.6.2.1}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.2}Implementation: QuiltMesh}{30}{subsubsection.6.2.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Index ranges}{30}{subsection.6.3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Getting data}{31}{subsection.6.4}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.4.1}Implementation: BoutMesh}{31}{subsubsection.6.4.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Communications}{31}{subsection.6.5}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.1}Implementation: BoutMesh}{32}{subsubsection.6.5.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.6}X communications}{32}{subsection.6.6}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.7}Y-Z surface communications}{33}{subsection.6.7}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.8}Boundary regions}{34}{subsection.6.8}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.9}Initial profiles}{34}{subsection.6.9}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.10}Differencing}{35}{subsection.6.10}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.11}Metrics}{35}{subsection.6.11}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.12}Miscellaneous}{36}{subsection.6.12}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Boundary conditions}{36}{section.7}}
+\newlabel{sec:boundaries}{{7}{36}{Boundary conditions\relax }{section.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Boundary regions}{37}{subsection.7.1}}
+\newlabel{sec:BoundaryRegion}{{7.1}{37}{Boundary regions\relax }{subsection.7.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Boundary operations}{38}{subsection.7.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Boundary modifiers}{40}{subsection.7.3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Boundary factory}{41}{subsection.7.4}}
+\newlabel{sec:BoundaryFactory}{{7.4}{41}{Boundary factory\relax }{subsection.7.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Variable initialisation}{43}{section.8}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}\lstinline !FieldFactory! class}{43}{subsection.8.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.2}Adding a new function}{44}{subsection.8.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3}Parser internals}{46}{subsection.8.3}}
+\@writefile{toc}{\contentsline {section}{\numberline {9}Solver}{47}{section.9}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.1}Implementation: PVODE}{48}{subsection.9.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.2}Implementation: IDA}{48}{subsection.9.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.3}Implementation: PETSc}{48}{subsection.9.3}}
+\@writefile{toc}{\contentsline {section}{\numberline {10}File I/O}{48}{section.10}}
+\@writefile{toc}{\contentsline {section}{\numberline {11}Options}{51}{section.11}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {11.1}Reading options}{52}{subsection.11.1}}
+\@writefile{toc}{\contentsline {section}{\numberline {12}Miscellaneous}{53}{section.12}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {12.1}Printing messages}{53}{subsection.12.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {12.2}Timing}{53}{subsection.12.2}}
+\newlabel{sec:timerclass}{{12.2}{53}{Timing\relax }{subsection.12.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {12.3}Iterating over ranges}{54}{subsection.12.3}}
+\newlabel{sec:rangeiterator}{{12.3}{54}{Iterating over ranges\relax }{subsection.12.3}{}}
+\bibdata{references}
+\bibcite{Dudson2009}{1}
+\bibcite{dudson-2008-arxiv}{2}
+\bibstyle{unsrt}
+\@writefile{toc}{\contentsline {subsection}{\numberline {12.4}Error handling}{55}{subsection.12.4}}
